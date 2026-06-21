@@ -1,6 +1,6 @@
-<!--
-网页index
--->
+---
+import Footer from '../components/footer.astro';
+---
 
 <!doctype html>
 <html lang="zh-CN">
@@ -11,14 +11,62 @@
     <meta name="generator" content={Astro.generator} >
     <title>Index</title>
     <meta name="description" content="一个学生的个人网页 化学+计算机" />
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: white;
+      }
+
+      nav {
+        background-color: white;
+        padding: 1rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      nav ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+      }
+
+      nav ul li {
+        margin-left: 10rem;
+      }
+
+      nav ul li a {
+        color: black;
+        text-decoration: none;
+      }
+
+      nav ul li:hover {
+        text-decoration: underline;
+      }
+
+      main {
+        padding: 2rem;
+      }
+
+      .recents li {
+        padding-bottom: 1rem;
+      }
+
+      .recents li a:hover {
+        text-decoration: none;
+      }
+
+    </style>
   </head>
 
   <body>
     <nav>
       <ul>
         <li><a href="/">首页</a></li>
-        <li><a href="/">关于</a></li>
-        <li><a href="/">联系</a></li>
+        <li><a href="/about">关于</a></li>
+        <li><a href="/blog">博客</a></li>
       </ul>
     </nav>
 
@@ -29,8 +77,10 @@
       </div>
       <div>
         <h2>最近更新</h2>
-        <ul>
-          <li>还没有东西(&gt; _	&lt;) </li>
+        <ul class="recents">
+          <li><a href="/posts/post-1/">Post 1</a></li>
+          <li><a href="/posts/post-2/">Post 2</a></li>
+          <li><a href="/posts/post-3/">Post 3</a></li>
         </ul>
       </div>
       <div>
@@ -41,24 +91,21 @@
         <h2>CS</h2>
         <p>计算机相关笔记</p>
       </div>
+      <div>
+        <h2>每日分子展示</h2>
+        <p>留空</p>
+      </div>
+      <div>
+        <h2>时钟</h2>
+        <p>留空</p>
+      </div>
+      <div>
+        <h2>音乐播放器</h2>
+        <p>留空</p>
+      </div>
     </main>
 
-    <div>
-      <h2>每日分子展示</h2>
-      <p>留空</p>
-    </div>
-    <div>
-      <h2>时钟</h2>
-      <p>留空</p>
-    </div>
-    <div>
-      <h2>音乐播放器</h2>
-      <p>留空</p>
-    </div>
-
-    <footer>
-      <p>&copy; 2026 我的个人网页. 保留所有权利.</p>
-    </footer>
+    <Footer />
 
   </body>
 </html>
