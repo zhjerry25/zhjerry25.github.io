@@ -1,5 +1,25 @@
 ---
 ---
-<button aria-expanded="false" aria-controls="main-menu" class="menu">
-  Menu
+
+<button
+  id="menu-toggle"
+  aria-expanded="false"
+  aria-controls="sidebar"
+  aria-label="Toggle navigation"
+  class="rounded-md p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-colors md:hidden"
+>
+  <svg
+    class="h-5 w-5"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+  >
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M4 6h16M4 12h16M4 18h16"
+    />
+  </svg>
 </button>
