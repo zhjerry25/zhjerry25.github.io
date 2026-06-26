@@ -1,18 +1,16 @@
 ---
-
+import Social from './Social.astro';
 ---
 <footer>
-    <p>&copy; 2026 我的个人网页. 保留所有权利.</p>
+    <Social platform="twitter" username="astrodotbuild" />
+    <Social platform="github" username="withastro" />
+    <Social platform="youtube" username="astrodotbuild" />
 </footer>
 
 <style>
-    footer {
-        background-color: white;
-        color: black;
-        text-align: center;
-        padding: 1rem;
-        width: 100%;
-        bottom: 0;
-        box-shadow: 4px 2px 4px 4px rgba(0, 0, 0, 0.1);
-    }
+  footer {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
 </style>
