@@ -2,18 +2,18 @@
 import Social from './Social.astro';
 ---
 
-<footer class="w-full p-4 bg-gray-100 text-gray-700 font-sans">
+<footer class="w-full bg-gray-100 text-gray-700 font-sans text-sm px-4 py-4">
 
-  <div class="container">
+  <div class="flex flex-col gap-4 md:flex-row md:justify-between md:gap-0 items-start max-w-6xl mx-auto">
 
     <div>
       <p>Copyright &copy; 2026-present by Jerry is licensed under CC BY-SA 4.0</p>
-      <p>Made with <a href="https://astro.build">Astro</a></p>
+      <p><span class="text-gray-500">Made with</span> <a href="https://astro.build" class="hover:underline hover:text-blue-500">Astro</a></p>
       <p>xxx备xxx号</p>
     </div>
 
 
-    <div>
+    <div class="flex flex-wrap gap-3">
       <Social platform="github" username="zhjerry25" />
       <Social platform="bilibili" username="#" />
       <Social platform="qq" username="#" />
