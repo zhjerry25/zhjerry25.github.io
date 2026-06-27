@@ -1,15 +1,25 @@
 ---
 import { getCollection } from "astro:content";
 import BaseLayout from "../../layouts/Baselayout.astro";
+
 const allPosts = await getCollection("blog");
-const tags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
-const pageTitle = "Tag Index";
+const tags = [...new Set(allPosts.map((post) => post.data.tags).flat())].sort();
+const pageTitle = "Tags";
 ---
 
 <BaseLayout pageTitle={pageTitle}>
-  <div class="tags">
+  <p class="text-neutral-500 mb-6">
+    {tags.length} {tags.length === 1 ? "tag" : "tags"} across all blog posts.
+  </p>
+
+  <div class="flex flex-wrap gap-2">
     {tags.map((tag) => (
-      <p class="tag"><a href={`/tags/${tag}`}>{tag}</a></p>
+      <a
+        href={`/tags/${tag}`}
+        class="inline-block rounded-full bg-pink-50 px-3 py-1.5 text-sm text-pink-700 hover:bg-pink-100 transition-colors"
+      >
+        #{tag}
+      </a>
     ))}
   </div>
 </BaseLayout>

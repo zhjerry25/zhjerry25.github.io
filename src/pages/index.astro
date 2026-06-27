@@ -1,6 +1,127 @@
 ---
-import BaseLayout from '../layouts/Baselayout.astro';
+import { getCollection } from "astro:content";
+import BaseLayout from "../layouts/Baselayout.astro";
+
 const pageTitle = "Home Page";
+
+// Fetch all collections for recent updates
+const blogPosts = await getCollection("blog");
+let chemPosts: any[] = [];
+let csPosts: any[] = [];
+let mathphyPosts: any[] = [];
+let othersPosts: any[] = [];
+
+try { chemPosts = await getCollection("chem"); } catch (_) {}
+try { csPosts = await getCollection("cs"); } catch (_) {}
+try { mathphyPosts = await getCollection("mathphy"); } catch (_) {}
+try { othersPosts = await getCollection("others"); } catch (_) {}
+
+// Aggregate and sort by date descending
+const allPosts = [...blogPosts, ...chemPosts, ...csPosts, ...mathphyPosts, ...othersPosts]
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+
+const recentPosts = allPosts.slice(0, 3);
+
+// Map collection to label and link
+const postMeta = (post: any): { label: string; href: string } => {
+  if (blogPosts.includes(post)) return { label: "Blog", href: `/posts/${post.id}/` };
+  if (chemPosts.includes(post)) return { label: "Chemistry", href: "/notes/Chem/" };
+  if (csPosts.includes(post)) return { label: "CS", href: "/notes/CS/" };
+  if (mathphyPosts.includes(post)) return { label: "Math & Physics", href: "/notes/MathPhy/" };
+  if (othersPosts.includes(post)) return { label: "Others", href: "/notes/Others/" };
+  return { label: "", href: "#" };
+};
+
+// Category definitions for the card grid
+const categories = [
+  { name: "Chemistry", emoji: "🧪", desc: "Notes on chemical principles, reactions, and lab work.", href: "/notes/Chem/" },
+  { name: "Computer Science", emoji: "💻", desc: "Algorithms, systems, and software engineering notes.", href: "/notes/CS/" },
+  { name: "Math & Physics", emoji: "📐", desc: "Mathematical methods and physics concepts.", href: "/notes/MathPhy/" },
+  { name: "Others", emoji: "📝", desc: "Miscellaneous notes and thoughts.", href: "/notes/Others/" },
+  { name: "Resources", emoji: "📚", desc: "Curated links, references, and learning materials.", href: "/resources/" },
+  { name: "Toolbox", emoji: "🧰", desc: "Tools, utilities, and workflows I use.", href: "/Toolbox/" },
+];
 ---
+
 <BaseLayout pageTitle={pageTitle}>
+  <!-- Section 1: Hero -->
+  <section class="mb-12">
+    <h1 class="text-4xl font-bold text-gray-900 mb-3">Astrchem.com</h1>
+    <p class="text-lg text-neutral-500 leading-relaxed">
+      A personal knowledge base covering chemistry, computer science, mathematics, physics,
+      and whatever else I'm learning. Notes, resources, and tools — loosely organized, constantly evolving.
+    </p>
+  </section>
+
+  <!-- Section 2: Recent Updates -->
+  <section class="mb-12">
+    <h2 class="text-xl font-semibold text-gray-900 mb-4">Recent Updates</h2>
+    {
+      recentPosts.length > 0 ? (
+        <div class="space-y-3">
+          {recentPosts.map((post) => {
+            const meta = postMeta(post);
+            return (
+            <a
+              href={meta.href}
+              class="block rounded-lg border border-neutral-200 p-4 hover:border-neutral-300 hover:bg-neutral-50 transition-colors"
+            >
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-xs font-medium text-pink-600 bg-pink-50 px-2 py-0.5 rounded">
+                  {meta.label}
+                </span>
+                <span class="text-xs text-neutral-400">
+                  {post.data.pubDate.toLocaleDateString("zh-cn", { year: "numeric", month: "short", day: "numeric" })}
+                </span>
+              </div>
+              <h3 class="text-base font-medium text-gray-900">{post.data.title}</h3>
+              {post.data.description && (
+                <p class="text-sm text-neutral-500 mt-1 line-clamp-2">{post.data.description}</p>
+              )}
+            </a>
+            );
+          })}
+        </div>
+      ) : (
+        <p class="text-neutral-400 text-sm">No posts yet. Check back soon!</p>
+      )
+    }
+    <a href="/recents/" class="inline-block mt-4 text-sm text-neutral-500 hover:text-neutral-700 transition-colors">
+      View all posts &rarr;
+    </a>
+  </section>
+
+  <!-- Section 3: What Is This? -->
+  <section class="mb-12">
+    <h2 class="text-xl font-semibold text-gray-900 mb-3">What is this?</h2>
+    <div class="prose prose-neutral max-w-none text-neutral-600">
+      <p>
+        This is my personal knowledge garden — a place where I write down what I learn,
+        organize resources I find useful, and share tools that make my workflow better.
+        It's not a polished blog; it's a living collection of notes that grow and evolve over time.
+      </p>
+      <p>
+        You'll find chemistry lecture notes alongside computer science cheatsheets,
+        physics derivations next to random tool reviews. Everything is connected by tags,
+        and the sidebar navigation should help you find your way around.
+      </p>
+    </div>
+  </section>
+
+  <!-- Section 4: Explore by Category -->
+  <section class="mb-12">
+    <h2 class="text-xl font-semibold text-gray-900 mb-4">Explore by Category</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      {categories.map((cat) => (
+        <a
+          href={cat.href}
+          class="rounded-lg border border-neutral-200 p-4 hover:border-neutral-300 hover:bg-neutral-50 transition-colors group"
+        >
+          <span class="text-2xl mb-2 block">{cat.emoji}</span>
+          <h3 class="text-sm font-medium text-gray-900 group-hover:text-gray-700">{cat.name}</h3>
+          <p class="text-xs text-neutral-400 mt-1 line-clamp-2">{cat.desc}</p>
+        </a>
+      ))}
+    </div>
+  </section>
 </BaseLayout>

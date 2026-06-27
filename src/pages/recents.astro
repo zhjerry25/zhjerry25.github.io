@@ -1,0 +1,75 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../layouts/Baselayout.astro";
+
+const blogPosts = await getCollection("blog");
+let chemPosts: any[] = [];
+let csPosts: any[] = [];
+let mathphyPosts: any[] = [];
+let othersPosts: any[] = [];
+
+try { chemPosts = await getCollection("chem"); } catch (_) {}
+try { csPosts = await getCollection("cs"); } catch (_) {}
+try { mathphyPosts = await getCollection("mathphy"); } catch (_) {}
+try { othersPosts = await getCollection("others"); } catch (_) {}
+
+const collectionLabel = (post: any): string => {
+  if (blogPosts.includes(post)) return "Blog";
+  if (chemPosts.includes(post)) return "Chemistry";
+  if (csPosts.includes(post)) return "CS";
+  if (mathphyPosts.includes(post)) return "Math & Physics";
+  if (othersPosts.includes(post)) return "Others";
+  return "";
+};
+
+const postHref = (post: any): string => {
+  if (blogPosts.includes(post)) return `/posts/${post.id}/`;
+  if (chemPosts.includes(post)) return `/notes/chem/${post.id}/`;
+  if (csPosts.includes(post)) return `/notes/cs/${post.id}/`;
+  if (mathphyPosts.includes(post)) return `/notes/mathphy/${post.id}/`;
+  if (othersPosts.includes(post)) return `/notes/others/${post.id}/`;
+  return "#";
+};
+
+const allPosts = [
+  ...blogPosts,
+  ...chemPosts,
+  ...csPosts,
+  ...mathphyPosts,
+  ...othersPosts,
+].sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+---
+
+<BaseLayout pageTitle="Recents">
+  <p class="text-neutral-500 mb-6">All recent updates across all categories.</p>
+
+  {allPosts.length > 0 ? (
+    <div class="space-y-3">
+      {allPosts.map((post) => (
+        <a
+          href={postHref(post)}
+          class="block rounded-lg border border-neutral-200 p-4 hover:border-neutral-300 hover:bg-neutral-50 transition-colors"
+        >
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-xs font-medium text-pink-600 bg-pink-50 px-2 py-0.5 rounded">
+              {collectionLabel(post)}
+            </span>
+            <span class="text-xs text-neutral-400">
+              {post.data.pubDate.toLocaleDateString("zh-cn", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })}
+            </span>
+          </div>
+          <h3 class="text-base font-medium text-gray-900">{post.data.title}</h3>
+          {post.data.description && (
+            <p class="text-sm text-neutral-500 mt-1">{post.data.description}</p>
+          )}
+        </a>
+      ))}
+    </div>
+  ) : (
+    <p class="text-neutral-400 text-sm">No posts yet. Check back soon!</p>
+  )}
+</BaseLayout>
