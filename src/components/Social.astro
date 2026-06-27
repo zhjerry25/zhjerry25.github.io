@@ -2,9 +2,10 @@
 interface Props {
   platform: string;
   username: string;
+  class?: string;
 }
 
-const { platform, username } = Astro.props;
+const { platform, username, class: customClass } = Astro.props;
 
 const platforms: Record<string, { label: string; url: string; path: string }> = {
   github: {
@@ -37,7 +38,7 @@ const config = platforms[platform];
     <a
       href={config.url}
       aria-label={`Visit ${config.label} profile`}
-      class="inline-block text-gray-600 hover:text-blue-500 transition-colors"
+      class={`inline-block transition-colors ${customClass ?? "text-gray-600 hover:text-blue-500"}`}
       target="_blank"
       rel="noopener noreferrer"
     >

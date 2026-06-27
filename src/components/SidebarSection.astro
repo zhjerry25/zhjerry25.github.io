@@ -1,0 +1,22 @@
+---
+const { title, defaultOpen = false } = Astro.props;
+---
+
+<li class="mt-5">
+  <details class="group" open={defaultOpen}>
+    <summary
+      class="flex h-7 cursor-pointer list-none items-center gap-1 rounded-md px-2 text-[14px] text-neutral-500 transition-colors hover:bg-neutral-100"
+    >
+      <svg
+        class="h-3 w-3 shrink-0 fill-current transition-transform duration-150 group-open:rotate-90"
+        viewBox="0 0 24 24"
+      >
+        <path d="M9 18l6-6-6-6" />
+      </svg>
+      {title}
+    </summary>
+    <ul class="mt-0.5 space-y-0">
+      <slot />
+    </ul>
+  </details>
+</li>
