@@ -1,11 +1,15 @@
 ---
 import { getCollection } from "astro:content";
 import BaseLayout from "../../layouts/Baselayout.astro";
+import BlogPost from "../../components/BlogPost.astro";
 
 const posts = await getCollection("cs");
 const sortedPosts = posts.sort(
   (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
 );
+
+const formatDate = (d: Date) =>
+  d.toLocaleDateString("zh-cn", { year: "numeric", month: "short", day: "numeric" });
 ---
 
 <BaseLayout pageTitle="Computer Science">
@@ -14,33 +18,13 @@ const sortedPosts = posts.sort(
   {sortedPosts.length > 0 ? (
     <div class="space-y-3">
       {sortedPosts.map((post) => (
-        <a
-          href={`/notes/cs/${post.id}/`}
-          class="block rounded-lg border border-neutral-200 p-4 hover:border-neutral-300 hover:bg-neutral-50 transition-colors"
-        >
-          <div class="flex items-center gap-2 mb-1">
-            <span class="text-xs text-neutral-400">
-              {post.data.pubDate.toLocaleDateString("zh-cn", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              })}
-            </span>
-            {post.data.tags && post.data.tags.length > 0 && (
-              <span class="flex gap-1">
-                {post.data.tags.map((tag: string) => (
-                  <span class="text-xs text-pink-600 bg-pink-50 px-1.5 py-0.5 rounded">
-                    {tag}
-                  </span>
-                ))}
-              </span>
-            )}
-          </div>
-          <h3 class="text-base font-medium text-gray-900">{post.data.title}</h3>
-          {post.data.description && (
-            <p class="text-sm text-neutral-500 mt-1">{post.data.description}</p>
-          )}
-        </a>
+        <BlogPost
+          title={post.data.title}
+          url={`/notes/cs/${post.id}/`}
+          date={formatDate(post.data.pubDate)}
+          tags={post.data.tags}
+          description={post.data.description}
+        />
       ))}
     </div>
   ) : (

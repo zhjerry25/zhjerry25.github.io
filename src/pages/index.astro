@@ -1,6 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import BaseLayout from "../layouts/Baselayout.astro";
+import BlogPost from "../components/BlogPost.astro";
 
 const pageTitle = "Home Page";
 
@@ -32,6 +33,9 @@ const postMeta = (post: any): { label: string; href: string } => {
   return { label: "", href: "#" };
 };
 
+const formatDate = (d: Date) =>
+  d.toLocaleDateString("zh-cn", { year: "numeric", month: "short", day: "numeric" });
+
 // Category definitions for the card grid
 const categories = [
   { name: "Chemistry", emoji: "🧪", desc: "Notes on chemical principles, reactions, and lab work.", href: "/notes/Chem/" },
@@ -62,23 +66,13 @@ const categories = [
           {recentPosts.map((post) => {
             const meta = postMeta(post);
             return (
-            <a
-              href={meta.href}
-              class="block rounded-lg border border-neutral-200 p-4 hover:border-neutral-300 hover:bg-neutral-50 transition-colors"
-            >
-              <div class="flex items-center gap-2 mb-1">
-                <span class="text-xs font-medium text-pink-600 bg-pink-50 px-2 py-0.5 rounded">
-                  {meta.label}
-                </span>
-                <span class="text-xs text-neutral-400">
-                  {post.data.pubDate.toLocaleDateString("zh-cn", { year: "numeric", month: "short", day: "numeric" })}
-                </span>
-              </div>
-              <h3 class="text-base font-medium text-gray-900">{post.data.title}</h3>
-              {post.data.description && (
-                <p class="text-sm text-neutral-500 mt-1 line-clamp-2">{post.data.description}</p>
-              )}
-            </a>
+              <BlogPost
+                title={post.data.title}
+                url={meta.href}
+                label={meta.label}
+                date={formatDate(post.data.pubDate)}
+                description={post.data.description}
+              />
             );
           })}
         </div>

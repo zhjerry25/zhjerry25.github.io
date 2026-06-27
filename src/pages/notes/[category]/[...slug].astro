@@ -1,0 +1,38 @@
+---
+import { getCollection, render } from 'astro:content';
+import MarkdownPostLayout from '../../../layouts/MarkdownPostLayout.astro';
+
+export async function getStaticPaths() {
+  const CATEGORY_MAP: Record<string, string> = {
+    chem: 'chem',
+    cs: 'cs',
+    mathphy: 'mathphy',
+    others: 'others',
+  };
+
+  const paths: Array<{ params: { category: string; slug: string }; props: any }> = [];
+
+  for (const [category, collectionName] of Object.entries(CATEGORY_MAP)) {
+    try {
+      const posts = await getCollection(collectionName as any);
+      for (const post of posts) {
+        paths.push({
+          params: { category, slug: post.id },
+          props: { post },
+        });
+      }
+    } catch (_) {
+      // Collection might be empty — skip
+    }
+  }
+
+  return paths;
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+
+<MarkdownPostLayout frontmatter={post.data}>
+  <Content />
+</MarkdownPostLayout>
