@@ -38,7 +38,7 @@ const config = platforms[platform];
     <a
       href={config.url}
       aria-label={`Visit ${config.label} profile`}
-      class={`inline-block transition-colors ${customClass ?? "text-gray-600 hover:text-blue-500"}`}
+      class={`inline-block transition-colors ${customClass ?? ""}`}
       target="_blank"
       rel="noopener noreferrer"
     >
@@ -52,7 +52,7 @@ const config = platforms[platform];
       </svg>
     </a>
   ) : (
-    <a href={`https://www.${platform}.com/${username}`} class="hover:underline hover:text-blue-500">
+    <a href={`https://www.${platform}.com/${username}`}>
       {platform}
     </a>
   )
