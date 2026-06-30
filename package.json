@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "postbuild": "npx pagefind --site dist",
     "preview": "astro preview",
     "astro": "astro"
   },
@@ -18,6 +19,7 @@
     "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.1",
     "astro": "^7.0.3",
+    "pagefind": "^1.5.2",
     "preact": "^10.29.3",
     "tailwindcss": "^4.3.1"
   }

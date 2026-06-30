@@ -114,6 +114,11 @@ export const zh = {
     title: "Astrchem 笔记",
     description: "个人知识库",
   },
+  search: {
+    placeholder: "搜索笔记...",
+    noResults: "未找到结果。",
+    closeAriaLabel: "关闭搜索",
+  },
   notFound: {
     title: "页面未找到",
     message: "您要找的页面不存在。",

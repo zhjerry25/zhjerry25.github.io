@@ -88,6 +88,11 @@ export interface Translations {
     title: string;
     description: string;
   };
+  search: {
+    placeholder: string;
+    noResults: string;
+    closeAriaLabel: string;
+  };
   notFound: {
     title: string;
     message: string;

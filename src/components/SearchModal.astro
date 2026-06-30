@@ -1,0 +1,148 @@
+---
+import type { Lang } from "../i18n/utils";
+import type { Translations } from "../i18n/types";
+
+interface Props {
+  lang: Lang;
+  t: Translations;
+}
+
+const { lang, t } = Astro.props;
+---
+
+<div
+  id="search-modal"
+  class="show:hidden fixed inset-0 z-50 flex items-start justify-center pt-[15vh]"
+  style="display: none;"
+>
+  <!-- Backdrop -->
+  <div
+    id="search-backdrop"
+    class="absolute inset-0 bg-black/50"
+    aria-hidden="true"
+  ></div>
+
+  <!-- Dialog -->
+  <div
+    class="relative z-10 w-full max-w-xl mx-4 bg-white rounded-xl shadow-2xl border border-neutral-200 overflow-hidden"
+  >
+    <!-- Input bar -->
+    <div class="flex items-center gap-3 px-4 py-3 border-b border-neutral-200">
+      <svg class="h-5 w-5 shrink-0 text-neutral-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-hidden="true"><path fill="currentColor" d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376C296.3 401.1 253.9 416 208 416 93.1 416 0 322.9 0 208S93.1 0 208 0 416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>
+      <input
+        id="search-input"
+        type="text"
+        class="flex-1 bg-transparent text-neutral-900 placeholder-neutral-400 outline-none text-lg"
+        placeholder={t.search.placeholder}
+        autocomplete="off"
+        spellcheck="false"
+        enterkeyhint="search"
+      />
+      <button
+        id="search-close-btn"
+        class="rounded-md p-1 text-neutral-400 hover:text-neutral-700 cursor-pointer transition-colors shrink-0"
+        aria-label={t.search.closeAriaLabel}
+      >
+        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" aria-hidden="true"><path fill="currentColor" d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
+      </button>
+    </div>
+
+    <!-- Results area -->
+    <div
+      id="search-results"
+      class="max-h-[50vh] overflow-y-auto px-4 py-3"
+      data-no-results={t.search.noResults}
+    >
+      <p class="search-hint text-sm text-neutral-400 text-center py-6">
+        {t.search.placeholder}
+      </p>
+    </div>
+
+    <!-- Footer hint -->
+    <div class="px-4 py-2 border-t border-neutral-100 text-xs text-neutral-400 flex items-center gap-4">
+      <span><kbd class="px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-500 text-xs">Esc</kbd> to close</span>
+      <span><kbd class="px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-500 text-xs">↓↑</kbd> to navigate</span>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Show/hide — toggled via JS adding .show class */
+  #search-modal.show {
+    display: flex !important;
+  }
+
+  /* Search result styles */
+  .search-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .search-result-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f5f5f5;
+  }
+
+  .search-result-item:last-child {
+    border-bottom: none;
+  }
+
+  .search-result-link {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .search-result-link:hover .search-result-title {
+    color: #be185d;
+  }
+
+  .search-result-title {
+    font-weight: 600;
+    color: #171717;
+    transition: color 0.15s;
+  }
+
+  .search-result-lang {
+    font-size: 0.7rem;
+    color: #a3a3a3;
+    border: 1px solid #e5e5e5;
+    border-radius: 3px;
+    padding: 0 0.25rem;
+    flex-shrink: 0;
+  }
+
+  .search-result-excerpt {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.875rem;
+    color: #737373;
+    line-height: 1.5;
+  }
+
+  .search-result-excerpt mark {
+    background-color: #fce7f3;
+    color: #9d174d;
+    border-radius: 2px;
+    padding: 0 0.125rem;
+  }
+
+  .search-count {
+    font-size: 0.75rem;
+    color: #a3a3a3;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .search-hint {
+    font-size: 0.875rem;
+    color: #a3a3a3;
+    text-align: center;
+    padding: 1.5rem 0;
+  }
+</style>
+
+<script>
+  import "../scripts/search.js";
+</script>

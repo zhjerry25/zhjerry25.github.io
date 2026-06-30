@@ -117,6 +117,11 @@ export const en = {
     title: "Astrchem Notes",
     description: "Personal knowledge base",
   },
+  search: {
+    placeholder: "Search notes...",
+    noResults: "No results found.",
+    closeAriaLabel: "Close search",
+  },
   notFound: {
     title: "Page Not Found",
     message: "The page you're looking for doesn't exist.",
