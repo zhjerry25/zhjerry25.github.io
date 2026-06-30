@@ -5,32 +5,27 @@ import BlogPost from "../components/BlogPost.astro";
 
 const pageTitle = "Home Page";
 
-// Fetch all collections for recent updates
-const blogPosts = await getCollection("blog");
-let chemPosts: any[] = [];
-let csPosts: any[] = [];
-let mathphyPosts: any[] = [];
-let othersPosts: any[] = [];
+// Fetch all notes from the single collection
+const allNotes = await getCollection("notes");
 
-try { chemPosts = await getCollection("chem"); } catch (_) {}
-try { csPosts = await getCollection("cs"); } catch (_) {}
-try { mathphyPosts = await getCollection("mathphy"); } catch (_) {}
-try { othersPosts = await getCollection("others"); } catch (_) {}
+const sortedNotes = allNotes.sort(
+  (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
+);
 
-// Aggregate and sort by date descending
-const allPosts = [...blogPosts, ...chemPosts, ...csPosts, ...mathphyPosts, ...othersPosts]
-  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+const recentNotes = sortedNotes.slice(0, 3);
 
-const recentPosts = allPosts.slice(0, 3);
+// Derive human-readable label and link from note.id
+const categoryLabels: Record<string, string> = {
+  chem: "Chemistry",
+  cs: "Computer Science",
+  mathphy: "Mathematics & Physics",
+  others: "Others",
+};
 
-// Map collection to label and link
-const postMeta = (post: any): { label: string; href: string } => {
-  if (blogPosts.includes(post)) return { label: "Blog", href: `/posts/${post.id}/` };
-  if (chemPosts.includes(post)) return { label: "Chemistry", href: "/notes/Chem/" };
-  if (csPosts.includes(post)) return { label: "CS", href: "/notes/CS/" };
-  if (mathphyPosts.includes(post)) return { label: "Math & Physics", href: "/notes/MathPhy/" };
-  if (othersPosts.includes(post)) return { label: "Others", href: "/notes/Others/" };
-  return { label: "", href: "#" };
+const noteMeta = (note: any): { label: string; href: string } => {
+  const category = note.id.includes("/") ? note.id.split("/")[0] : "others";
+  const label = categoryLabels[category] || category;
+  return { label, href: `/notes/${note.id}/` };
 };
 
 const formatDate = (d: Date) =>
@@ -61,27 +56,27 @@ const categories = [
   <section class="mb-12">
     <h2 class="text-xl font-semibold text-gray-900 mb-4">Recent Updates</h2>
     {
-      recentPosts.length > 0 ? (
+      recentNotes.length > 0 ? (
         <div class="space-y-3">
-          {recentPosts.map((post) => {
-            const meta = postMeta(post);
+          {recentNotes.map((note) => {
+            const meta = noteMeta(note);
             return (
               <BlogPost
-                title={post.data.title}
+                title={note.data.title}
                 url={meta.href}
                 label={meta.label}
-                date={formatDate(post.data.pubDate)}
-                description={post.data.description}
+                date={formatDate(note.data.pubDate)}
+                description={note.data.description}
               />
             );
           })}
         </div>
       ) : (
-        <p class="text-neutral-400 text-sm">No posts yet. Check back soon!</p>
+        <p class="text-neutral-400 text-sm">No notes yet. Check back soon!</p>
       )
     }
     <a href="/recents/" class="inline-block mt-4 text-sm text-neutral-500 hover:text-neutral-700 transition-colors">
-      View all posts &rarr;
+      View all notes &rarr;
     </a>
   </section>
 

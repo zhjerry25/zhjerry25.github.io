@@ -3,10 +3,10 @@ import { getCollection } from "astro:content";
 import BaseLayout from "../../layouts/Baselayout.astro";
 import BlogPost from "../../components/BlogPost.astro";
 
-const posts = await getCollection("mathphy");
-const sortedPosts = posts.sort(
-  (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
-);
+const allNotes = await getCollection("notes");
+const posts = allNotes
+  .filter((note) => note.id.split("/")[0] === "mathphy")
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
 
 const formatDate = (d: Date) =>
   d.toLocaleDateString("zh-cn", { year: "numeric", month: "short", day: "numeric" });
@@ -15,15 +15,15 @@ const formatDate = (d: Date) =>
 <BaseLayout pageTitle="Mathematics & Physics">
   <p class="text-neutral-500 mb-6">Notes on mathematical methods and physics concepts.</p>
 
-  {sortedPosts.length > 0 ? (
+  {posts.length > 0 ? (
     <div class="space-y-3">
-      {sortedPosts.map((post) => (
+      {posts.map((note) => (
         <BlogPost
-          title={post.data.title}
-          url={`/notes/mathphy/${post.id}/`}
-          date={formatDate(post.data.pubDate)}
-          tags={post.data.tags}
-          description={post.data.description}
+          title={note.data.title}
+          url={`/notes/${note.id}/`}
+          date={formatDate(note.data.pubDate)}
+          tags={note.data.tags}
+          description={note.data.description}
         />
       ))}
     </div>

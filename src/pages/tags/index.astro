@@ -2,14 +2,14 @@
 import { getCollection } from "astro:content";
 import BaseLayout from "../../layouts/Baselayout.astro";
 
-const allPosts = await getCollection("blog");
-const tags = [...new Set(allPosts.map((post) => post.data.tags).flat())].sort();
+const allNotes = await getCollection("notes");
+const tags = [...new Set(allNotes.map((note) => note.data.tags).flat())].sort();
 const pageTitle = "Tags";
 ---
 
 <BaseLayout pageTitle={pageTitle}>
   <p class="text-neutral-500 mb-6">
-    {tags.length} {tags.length === 1 ? "tag" : "tags"} across all blog posts.
+    {tags.length} {tags.length === 1 ? "tag" : "tags"} across all notes.
   </p>
 
   <div class="flex flex-wrap gap-2">

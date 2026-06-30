@@ -5,49 +5,18 @@ import { defineCollection } from "astro:content";
 // Import Zod
 import { z } from "astro/zod";
 
-// Blog collection — full schema with author and image
-const blog = defineCollection({
-  loader: glob({ pattern: '**/[^_]*.md', base: "./src/blog" }),
+// Single notes collection — one schema, one source of truth.
+// Category is derived from the first path segment of each entry's id
+// (e.g., "chem/reaction-mechanisms" → category: chem).
+const notes = defineCollection({
+  loader: glob({ pattern: '**/[^_]*.md', base: "./src/notes" }),
   schema: z.object({
     title: z.string(),
     pubDate: z.date(),
-    description: z.string(),
-    author: z.string(),
-    image: z.object({
-      url: z.string(),
-      alt: z.string()
-    }),
-    tags: z.array(z.string())
-  })
+    description: z.string().optional(),
+    tags: z.array(z.string()).optional().default([]),
+  }),
 });
 
-// Notes schema — simpler, no author/image required
-const notesSchema = z.object({
-  title: z.string(),
-  pubDate: z.date(),
-  description: z.string().optional(),
-  tags: z.array(z.string()).optional().default([]),
-});
-
-const chem = defineCollection({
-  loader: glob({ pattern: '**/[^_]*.md', base: "./src/notes/chem" }),
-  schema: notesSchema,
-});
-
-const cs = defineCollection({
-  loader: glob({ pattern: '**/[^_]*.md', base: "./src/notes/cs" }),
-  schema: notesSchema,
-});
-
-const mathphy = defineCollection({
-  loader: glob({ pattern: '**/[^_]*.md', base: "./src/notes/mathphy" }),
-  schema: notesSchema,
-});
-
-const others = defineCollection({
-  loader: glob({ pattern: '**/[^_]*.md', base: "./src/notes/others" }),
-  schema: notesSchema,
-});
-
-// Export a single `collections` object to register your collection(s)
-export const collections = { blog, chem, cs, mathphy, others };
+// Export a single `collections` object
+export const collections = { notes };

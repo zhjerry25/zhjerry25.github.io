@@ -1,10 +1,15 @@
 ---
 import { getCollection } from "astro:content";
-import BaseLayout from "../layouts/Baselayout.astro";
-import BlogPost from "../components/BlogPost.astro";
+import BaseLayout from "../../layouts/Baselayout.astro";
+import BlogPost from "../../components/BlogPost.astro";
 
 const allNotes = await getCollection("notes");
 
+const sortedNotes = allNotes.sort(
+  (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
+);
+
+// Derive human-readable category label from first segment of note.id
 const categoryLabels: Record<string, string> = {
   chem: "Chemistry",
   cs: "Computer Science",
@@ -19,28 +24,25 @@ const getCategoryLabel = (id: string): string => {
 
 const formatDate = (d: Date) =>
   d.toLocaleDateString("zh-cn", { year: "numeric", month: "short", day: "numeric" });
-
-const recentNotes = allNotes.sort(
-  (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
-);
 ---
 
-<BaseLayout pageTitle="Recents">
-  <p class="text-neutral-500 mb-6">All notes across all categories.</p>
+<BaseLayout pageTitle="Notes">
+  <p class="text-neutral-500 mb-6">All notes across every category.</p>
 
-  {recentNotes.length > 0 ? (
+  {sortedNotes.length > 0 ? (
     <div class="space-y-3">
-      {recentNotes.map((note) => (
+      {sortedNotes.map((note) => (
         <BlogPost
           title={note.data.title}
           url={`/notes/${note.id}/`}
           label={getCategoryLabel(note.id)}
           date={formatDate(note.data.pubDate)}
+          tags={note.data.tags}
           description={note.data.description}
         />
       ))}
     </div>
   ) : (
-    <p class="text-neutral-400 text-sm">No notes yet. Check back soon!</p>
+    <p class="text-neutral-400 text-sm">No notes yet. Start writing!</p>
   )}
 </BaseLayout>
