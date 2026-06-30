@@ -1,0 +1,87 @@
+---
+import { getLocale, getAlternateLang, type Lang } from "../i18n/utils";
+
+interface Props {
+  title: string;
+  description: string;
+  lang: Lang;
+  canonicalURL: string;
+  ogImage?: string;
+  type?: "website" | "article";
+  pubDate?: Date;
+  tags?: string[];
+  siteName?: string;
+}
+
+const {
+  title,
+  description,
+  lang,
+  canonicalURL,
+  ogImage,
+  type = "website",
+  pubDate,
+  tags = [],
+  siteName = "Astrchem.com",
+} = Astro.props;
+
+const locale = getLocale(lang);
+const otherLang = getAlternateLang(lang);
+
+// Build the alternate-language URL by replacing the lang prefix
+const baseUrl = "https://zhjerry25.github.io";
+const fullCanonical = new URL(canonicalURL, baseUrl).href;
+const alternateURL = fullCanonical.replace(`/${lang}/`, `/${otherLang}/`);
+const enURL = fullCanonical.replace(`/${lang}/`, "/en/");
+const zhURL = fullCanonical.replace(`/${lang}/`, "/zh/");
+
+const pageTitle = `${title} — ${siteName}`;
+---
+
+<!-- Primary Meta -->
+<title>{pageTitle}</title>
+<meta name="description" content={description} />
+
+<!-- Canonical -->
+<link rel="canonical" href={fullCanonical} />
+
+<!-- hreflang -->
+<link rel="alternate" hreflang="en" href={enURL} />
+<link rel="alternate" hreflang="zh" href={zhURL} />
+<link rel="alternate" hreflang="x-default" href={enURL} />
+
+<!-- Open Graph -->
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={fullCanonical} />
+<meta property="og:locale" content={locale} />
+<meta property="og:type" content={type} />
+<meta property="og:site_name" content={siteName} />
+{
+  ogImage && (
+    <meta property="og:image" content={new URL(ogImage, baseUrl).href} />
+  )
+}
+
+<!-- JSON-LD Structured Data -->
+{
+  type === "article" ? (
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      headline: title,
+      description: description,
+      datePublished: pubDate?.toISOString(),
+      keywords: tags.join(", "),
+      url: fullCanonical,
+    })} />
+  ) : (
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: siteName,
+      url: baseUrl,
+      description: description,
+    })} />
+  )
+}

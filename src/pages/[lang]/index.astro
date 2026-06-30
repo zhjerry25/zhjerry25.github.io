@@ -1,0 +1,113 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/Baselayout.astro";
+import BlogPost from "../../components/BlogPost.astro";
+import { getLocale, type Lang } from "../../i18n/utils";
+import { en } from "../../i18n/en";
+import { zh } from "../../i18n/zh";
+import type { Translations } from "../../i18n/types";
+
+export function getStaticPaths() {
+  return [
+    { params: { lang: "en" }, props: { t: en } },
+    { params: { lang: "zh" }, props: { t: zh } },
+  ];
+}
+
+const { lang } = Astro.params as { lang: Lang };
+const { t } = Astro.props as { t: Translations };
+const locale = getLocale(lang);
+
+const allNotes = await getCollection("notes");
+
+const sortedNotes = allNotes.sort(
+  (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
+);
+
+const recentNotes = sortedNotes.slice(0, 3);
+
+const noteMeta = (note: (typeof allNotes)[number]): { label: string; href: string } => {
+  const category = note.id.includes("/") ? note.id.split("/")[0] : "others";
+  const label = t.categories[category as keyof typeof t.categories] || category;
+  return { label, href: `/${lang}/notes/${note.id}/` };
+};
+
+const formatDate = (d: Date) =>
+  d.toLocaleDateString(locale, { year: "numeric", month: "short", day: "numeric" });
+
+const categoryKeys = ["chem", "cs", "mathphy", "others", "resources", "toolbox"] as const;
+---
+
+<BaseLayout pageTitle="Home Page" lang={lang} t={t} seoDescription={t.seo.homeDescription} canonicalURL={`/${lang}/`}>
+  <!-- Section 1: Hero -->
+  <section class="mb-12">
+    <h1 class="text-4xl font-bold text-gray-900 mb-3">{t.home.hero}</h1>
+    <p class="text-lg text-neutral-500 leading-relaxed">
+      {t.home.tagline}
+    </p>
+  </section>
+
+  <!-- Section 2: Recent Updates -->
+  <section class="mb-12">
+    <h2 class="text-xl font-semibold text-gray-900 mb-4">{t.home.recentUpdates}</h2>
+    {
+      recentNotes.length > 0 ? (
+        <div class="space-y-3">
+          {recentNotes.map((note) => {
+            const meta = noteMeta(note);
+            return (
+              <BlogPost
+                title={note.data.title}
+                url={meta.href}
+                label={meta.label}
+                date={formatDate(note.data.pubDate)}
+                description={note.data.description}
+              />
+            );
+          })}
+        </div>
+      ) : (
+        <p class="text-neutral-400 text-sm">{t.home.noNotes}</p>
+      )
+    }
+    <a href={`/${lang}/recents/`} class="inline-block mt-4 text-sm text-neutral-500 hover:text-neutral-700 transition-colors">
+      {t.home.viewAll}
+    </a>
+  </section>
+
+  <!-- Section 3: What Is This? -->
+  <section class="mb-12">
+    <h2 class="text-xl font-semibold text-gray-900 mb-3">{t.home.whatIsThis}</h2>
+    <div class="prose prose-neutral max-w-none text-neutral-600">
+      <p>{t.home.whatIsThisP1}</p>
+      <p>{t.home.whatIsThisP2}</p>
+    </div>
+  </section>
+
+  <!-- Section 4: Explore by Category -->
+  <section class="mb-12">
+    <h2 class="text-xl font-semibold text-gray-900 mb-4">{t.home.exploreByCategory}</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      {categoryKeys.map((key) => {
+        const cat = t.categoryMeta[key];
+        const href = key === "resources" ? `/${lang}/resources/`
+          : key === "toolbox" ? `/${lang}/Toolbox/`
+          : `/${lang}/notes/${key}/`;
+        return (
+          <a
+            href={href}
+            class="rounded-lg border border-neutral-200 p-4 hover:border-neutral-300 hover:bg-neutral-50 transition-colors group"
+          >
+            <span class="text-2xl mb-2 block">{cat.emoji}</span>
+            <h3 class="text-sm font-medium text-gray-900 group-hover:text-gray-700">
+              {key === "resources" ? t.nav.resources
+                : key === "toolbox" ? t.nav.toolbox
+                : t.categories[key as keyof typeof t.categories]}
+            </h3>
+            <p class="text-xs text-neutral-400 mt-1 line-clamp-2">{cat.desc}</p>
+          </a>
+        );
+      })}
+    </div>
+  </section>
+</BaseLayout>

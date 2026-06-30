@@ -1,0 +1,60 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/Baselayout.astro";
+import BlogPost from "../../components/BlogPost.astro";
+import { getLocale, type Lang } from "../../i18n/utils";
+import { en } from "../../i18n/en";
+import { zh } from "../../i18n/zh";
+import type { Translations } from "../../i18n/types";
+
+export function getStaticPaths() {
+  return [
+    { params: { lang: "en" }, props: { t: en } },
+    { params: { lang: "zh" }, props: { t: zh } },
+  ];
+}
+
+const { lang } = Astro.params as { lang: Lang };
+const { t } = Astro.props as { t: Translations };
+const locale = getLocale(lang);
+
+const allNotes = await getCollection("notes");
+
+const getCategoryLabel = (id: string): string => {
+  const category = id.includes("/") ? id.split("/")[0] : "others";
+  return t.categories[category as keyof typeof t.categories] || category;
+};
+
+const formatDate = (d: Date) =>
+  d.toLocaleDateString(locale, { year: "numeric", month: "short", day: "numeric" });
+
+const sortedNotes = allNotes.sort(
+  (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
+);
+---
+
+<BaseLayout
+  pageTitle={t.recents.title}
+  lang={lang}
+  t={t}
+  seoDescription={t.seo.recentsDescription}
+  canonicalURL={`/${lang}/recents/`}
+>
+  <p class="text-neutral-500 mb-6">{t.recents.description}</p>
+
+  {sortedNotes.length > 0 ? (
+    <div class="space-y-3">
+      {sortedNotes.map((note) => (
+        <BlogPost
+          title={note.data.title}
+          url={`/${lang}/notes/${note.id}/`}
+          label={getCategoryLabel(note.id)}
+          date={formatDate(note.data.pubDate)}
+          description={note.data.description}
+        />
+      ))}
+    </div>
+  ) : (
+    <p class="text-neutral-400 text-sm">{t.recents.empty}</p>
+  )}
+</BaseLayout>

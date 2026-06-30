@@ -1,0 +1,44 @@
+---
+import { getCollection, render } from "astro:content";
+import MarkdownPostLayout from "../../../../layouts/MarkdownPostLayout.astro";
+import { en } from "../../../../i18n/en";
+import { zh } from "../../../../i18n/zh";
+import type { Lang } from "../../../../i18n/utils";
+import type { Translations } from "../../../../i18n/types";
+
+export async function getStaticPaths() {
+  const allNotes = await getCollection("notes");
+
+  const paths: { params: { lang: string; category: string; slug: string }; props: { t: Translations; post: typeof allNotes[number] } }[] = [];
+
+  for (const note of allNotes) {
+    const parts = note.id.split("/");
+    const category = parts.length > 1 ? parts[0] : "others";
+    const slug = parts.length > 1 ? parts.slice(1).join("/") : note.id;
+
+    paths.push({
+      params: { lang: "en", category, slug },
+      props: { t: en, post: note },
+    });
+    paths.push({
+      params: { lang: "zh", category, slug },
+      props: { t: zh, post: note },
+    });
+  }
+
+  return paths;
+}
+
+const { lang } = Astro.params as { lang: Lang };
+const { t, post } = Astro.props as { t: Translations; post: any };
+const { Content } = await render(post);
+---
+
+<MarkdownPostLayout
+  frontmatter={post.data}
+  lang={lang}
+  t={t}
+  canonicalURL={`/${lang}/notes/${post.id}/`}
+>
+  <Content />
+</MarkdownPostLayout>

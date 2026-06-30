@@ -1,0 +1,29 @@
+---
+import BaseLayout from "../layouts/Baselayout.astro";
+import { en } from "../i18n/en";
+
+// 404 page — default to English since we don't know the language
+const lang = "en" as const;
+const t = en;
+---
+
+<BaseLayout pageTitle={t.notFound.title} lang={lang} t={t}>
+  <div class="text-center py-16">
+    <h2 class="text-2xl font-bold text-gray-900 mb-3">{t.notFound.title}</h2>
+    <p class="text-neutral-500 mb-6">{t.notFound.message}</p>
+    <div class="flex justify-center gap-4">
+      <a
+        href="/en/"
+        class="rounded-lg bg-pink-50 px-4 py-2 text-sm text-pink-700 hover:bg-pink-100 transition-colors"
+      >
+        English — {t.notFound.goHome}
+      </a>
+      <a
+        href="/zh/"
+        class="rounded-lg bg-neutral-100 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-200 transition-colors"
+      >
+        中文 — 回到首页
+      </a>
+    </div>
+  </div>
+</BaseLayout>

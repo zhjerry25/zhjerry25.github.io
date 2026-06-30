@@ -1,116 +1,21 @@
 ---
-import { getCollection } from "astro:content";
-import BaseLayout from "../layouts/Baselayout.astro";
-import BlogPost from "../components/BlogPost.astro";
-
-const pageTitle = "Home Page";
-
-// Fetch all notes from the single collection
-const allNotes = await getCollection("notes");
-
-const sortedNotes = allNotes.sort(
-  (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
-);
-
-const recentNotes = sortedNotes.slice(0, 3);
-
-// Derive human-readable label and link from note.id
-const categoryLabels: Record<string, string> = {
-  chem: "Chemistry",
-  cs: "Computer Science",
-  mathphy: "Mathematics & Physics",
-  others: "Others",
-};
-
-const noteMeta = (note: any): { label: string; href: string } => {
-  const category = note.id.includes("/") ? note.id.split("/")[0] : "others";
-  const label = categoryLabels[category] || category;
-  return { label, href: `/notes/${note.id}/` };
-};
-
-const formatDate = (d: Date) =>
-  d.toLocaleDateString("zh-cn", { year: "numeric", month: "short", day: "numeric" });
-
-// Category definitions for the card grid
-const categories = [
-  { name: "Chemistry", emoji: "🧪", desc: "Notes on chemical principles, reactions, and lab work.", href: "/notes/Chem/" },
-  { name: "Computer Science", emoji: "💻", desc: "Algorithms, systems, and software engineering notes.", href: "/notes/CS/" },
-  { name: "Math & Physics", emoji: "📐", desc: "Mathematical methods and physics concepts.", href: "/notes/MathPhy/" },
-  { name: "Others", emoji: "📝", desc: "Miscellaneous notes and thoughts.", href: "/notes/Others/" },
-  { name: "Resources", emoji: "📚", desc: "Curated links, references, and learning materials.", href: "/resources/" },
-  { name: "Toolbox", emoji: "🧰", desc: "Tools, utilities, and workflows I use.", href: "/Toolbox/" },
-];
+// Root redirect: detect browser language and redirect to /en/ or /zh/.
+// Falls back to /en/ for search engines that don't execute JS.
 ---
-
-<BaseLayout pageTitle={pageTitle}>
-  <!-- Section 1: Hero -->
-  <section class="mb-12">
-    <h1 class="text-4xl font-bold text-gray-900 mb-3">Astrchem.com</h1>
-    <p class="text-lg text-neutral-500 leading-relaxed">
-      A personal knowledge base covering chemistry, computer science, mathematics, physics,
-      and whatever else I'm learning. Notes, resources, and tools — loosely organized, constantly evolving.
-    </p>
-  </section>
-
-  <!-- Section 2: Recent Updates -->
-  <section class="mb-12">
-    <h2 class="text-xl font-semibold text-gray-900 mb-4">Recent Updates</h2>
-    {
-      recentNotes.length > 0 ? (
-        <div class="space-y-3">
-          {recentNotes.map((note) => {
-            const meta = noteMeta(note);
-            return (
-              <BlogPost
-                title={note.data.title}
-                url={meta.href}
-                label={meta.label}
-                date={formatDate(note.data.pubDate)}
-                description={note.data.description}
-              />
-            );
-          })}
-        </div>
-      ) : (
-        <p class="text-neutral-400 text-sm">No notes yet. Check back soon!</p>
-      )
-    }
-    <a href="/recents/" class="inline-block mt-4 text-sm text-neutral-500 hover:text-neutral-700 transition-colors">
-      View all notes &rarr;
-    </a>
-  </section>
-
-  <!-- Section 3: What Is This? -->
-  <section class="mb-12">
-    <h2 class="text-xl font-semibold text-gray-900 mb-3">What is this?</h2>
-    <div class="prose prose-neutral max-w-none text-neutral-600">
-      <p>
-        This is my personal knowledge garden — a place where I write down what I learn,
-        organize resources I find useful, and share tools that make my workflow better.
-        It's not a polished blog; it's a living collection of notes that grow and evolve over time.
-      </p>
-      <p>
-        You'll find chemistry lecture notes alongside computer science cheatsheets,
-        physics derivations next to random tool reviews. Everything is connected by tags,
-        and the sidebar navigation should help you find your way around.
-      </p>
-    </div>
-  </section>
-
-  <!-- Section 4: Explore by Category -->
-  <section class="mb-12">
-    <h2 class="text-xl font-semibold text-gray-900 mb-4">Explore by Category</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-      {categories.map((cat) => (
-        <a
-          href={cat.href}
-          class="rounded-lg border border-neutral-200 p-4 hover:border-neutral-300 hover:bg-neutral-50 transition-colors group"
-        >
-          <span class="text-2xl mb-2 block">{cat.emoji}</span>
-          <h3 class="text-sm font-medium text-gray-900 group-hover:text-gray-700">{cat.name}</h3>
-          <p class="text-xs text-neutral-400 mt-1 line-clamp-2">{cat.desc}</p>
-        </a>
-      ))}
-    </div>
-  </section>
-</BaseLayout>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="refresh" content="0;url=/en/" />
+    <title>Redirecting...</title>
+    <script>
+      const lang = navigator.language.startsWith("zh") ? "zh" : "en";
+      window.location.replace(`/${lang}/${window.location.search}${window.location.hash}`);
+    </script>
+  </head>
+  <body>
+    <noscript>
+      <p><a href="/en/">English</a> | <a href="/zh/">中文</a></p>
+    </noscript>
+  </body>
+</html>

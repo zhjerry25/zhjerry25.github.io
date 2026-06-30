@@ -1,0 +1,62 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../../../layouts/Baselayout.astro";
+import BlogPost from "../../../../components/BlogPost.astro";
+import { getLocale, type Lang } from "../../../../i18n/utils";
+import { en } from "../../../../i18n/en";
+import { zh } from "../../../../i18n/zh";
+import type { Translations } from "../../../../i18n/types";
+
+export async function getStaticPaths() {
+  // All known category keys — must match src/notes/ directory names
+  const KNOWN_CATEGORIES = ["chem", "cs", "mathphy", "others"] as const;
+
+  const paths: { params: { lang: string; category: string }; props: { t: Translations } }[] = [];
+  for (const cat of KNOWN_CATEGORIES) {
+    paths.push({ params: { lang: "en", category: cat }, props: { t: en } });
+    paths.push({ params: { lang: "zh", category: cat }, props: { t: zh } });
+  }
+  return paths;
+}
+
+const { lang, category } = Astro.params as { lang: Lang; category: string };
+const { t } = Astro.props as { t: Translations };
+const locale = getLocale(lang);
+
+const allNotes = await getCollection("notes");
+const posts = allNotes
+  .filter((note) => (note.id.includes("/") ? note.id.split("/")[0] : "others") === category)
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+
+const formatDate = (d: Date) =>
+  d.toLocaleDateString(locale, { year: "numeric", month: "short", day: "numeric" });
+
+const categoryLabel = t.categories[category as keyof typeof t.categories] || category;
+const catMeta = t.categoryMeta[category as keyof typeof t.categoryMeta];
+---
+
+<BaseLayout
+  pageTitle={categoryLabel}
+  lang={lang}
+  t={t}
+  seoDescription={catMeta?.desc || `${categoryLabel} notes`}
+  canonicalURL={`/${lang}/notes/${category}/`}
+>
+  <p class="text-neutral-500 mb-6">{catMeta?.desc || ""}</p>
+
+  {posts.length > 0 ? (
+    <div class="space-y-3">
+      {posts.map((note) => (
+        <BlogPost
+          title={note.data.title}
+          url={`/${lang}/notes/${note.id}/`}
+          date={formatDate(note.data.pubDate)}
+          tags={note.data.tags}
+          description={note.data.description}
+        />
+      ))}
+    </div>
+  ) : (
+    <p class="text-neutral-400 text-sm">{t.recents.empty}</p>
+  )}
+</BaseLayout>

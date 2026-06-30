@@ -1,0 +1,27 @@
+---
+import BaseLayout from "../../layouts/Baselayout.astro";
+import { en } from "../../i18n/en";
+import { zh } from "../../i18n/zh";
+import type { Lang } from "../../i18n/utils";
+import type { Translations } from "../../i18n/types";
+
+export function getStaticPaths() {
+  return [
+    { params: { lang: "en" }, props: { t: en } },
+    { params: { lang: "zh" }, props: { t: zh } },
+  ];
+}
+
+const { lang } = Astro.params as { lang: Lang };
+const { t } = Astro.props as { t: Translations };
+---
+
+<BaseLayout
+  pageTitle={t.about.title}
+  lang={lang}
+  t={t}
+  seoDescription={t.seo.aboutDescription}
+  canonicalURL={`/${lang}/about/`}
+>
+  <h2>{t.about.content}</h2>
+</BaseLayout>

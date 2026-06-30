@@ -1,10 +1,35 @@
 ---
 import BaseLayout from "./Baselayout.astro";
+import { getLocale, type Lang } from "../i18n/utils";
+import type { Translations } from "../i18n/types";
 
-const { frontmatter } = Astro.props;
+interface Props {
+  frontmatter: {
+    title: string;
+    pubDate: Date;
+    tags?: string[];
+    description?: string;
+  };
+  lang: Lang;
+  t: Translations;
+  canonicalURL: string;
+}
+
+const { frontmatter, lang, t, canonicalURL } = Astro.props;
+const locale = getLocale(lang);
 ---
 
-<BaseLayout pageTitle={frontmatter.title} showTitle={false}>
+<BaseLayout
+  pageTitle={frontmatter.title}
+  showTitle={false}
+  lang={lang}
+  t={t}
+  seoDescription={frontmatter.description || frontmatter.title}
+  canonicalURL={canonicalURL}
+  seoType="article"
+  pubDate={frontmatter.pubDate}
+  tags={frontmatter.tags}
+>
   <article>
     <header class="mb-8">
       <h1 class="text-3xl font-bold text-gray-900 mb-3">
@@ -12,7 +37,7 @@ const { frontmatter } = Astro.props;
       </h1>
       <div class="flex flex-wrap items-center gap-2 text-sm text-neutral-400">
         <time datetime={frontmatter.pubDate.toISOString()}>
-          {frontmatter.pubDate.toLocaleDateString("zh-cn", {
+          {frontmatter.pubDate.toLocaleDateString(locale, {
             year: "numeric",
             month: "long",
             day: "numeric",
@@ -24,7 +49,7 @@ const { frontmatter } = Astro.props;
             <span class="flex flex-wrap gap-1.5">
               {frontmatter.tags.map((tag: string) => (
                 <a
-                  href={`/tags/${tag}`}
+                  href={`/${lang}/tags/${tag}`}
                   class="text-pink-600 hover:text-pink-800 transition-colors"
                 >
                   #{tag}

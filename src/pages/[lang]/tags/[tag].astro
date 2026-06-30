@@ -1,0 +1,72 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../../layouts/Baselayout.astro";
+import { getLocale, type Lang } from "../../../i18n/utils";
+import { en } from "../../../i18n/en";
+import { zh } from "../../../i18n/zh";
+import type { Translations } from "../../../i18n/types";
+
+export async function getStaticPaths() {
+  const allNotes = await getCollection("notes");
+  const uniqueTags = [...new Set(allNotes.map((note) => note.data.tags).flat())];
+
+  const paths: { params: { lang: string; tag: string }; props: { t: Translations } }[] = [];
+  for (const tag of uniqueTags) {
+    paths.push({ params: { lang: "en", tag }, props: { t: en } });
+    paths.push({ params: { lang: "zh", tag }, props: { t: zh } });
+  }
+  return paths;
+}
+
+const { lang, tag } = Astro.params as { lang: Lang; tag: string };
+const { t } = Astro.props as { t: Translations };
+const locale = getLocale(lang);
+
+const allNotes = await getCollection("notes");
+const notes = allNotes.filter((note) =>
+  note.data.tags.includes(tag!)
+);
+---
+
+<BaseLayout
+  pageTitle={`#${tag}`}
+  lang={lang}
+  t={t}
+  seoDescription={`${notes.length} notes tagged with #${tag}`}
+  canonicalURL={`/${lang}/tags/${tag}/`}
+>
+  <p class="text-neutral-500 mb-6">
+    {t.tags.notesCount(notes.length, tag!)}
+    <span class="font-medium text-pink-600">#{tag}</span>
+  </p>
+
+  <div class="space-y-3">
+    {notes.map((note) => (
+      <a
+        href={`/${lang}/notes/${note.id}/`}
+        class="block rounded-lg border border-neutral-200 p-4 hover:border-neutral-300 hover:bg-neutral-50 transition-colors"
+      >
+        <div class="flex items-center gap-2 mb-1">
+          <span class="text-xs text-neutral-400">
+            {note.data.pubDate.toLocaleDateString(locale, {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            })}
+          </span>
+          <span class="flex gap-1">
+            {note.data.tags.map((t: string) => (
+              <span class="text-xs text-pink-600 bg-pink-50 px-1.5 py-0.5 rounded">
+                {t}
+              </span>
+            ))}
+          </span>
+        </div>
+        <h3 class="text-base font-medium text-gray-900">{note.data.title}</h3>
+        {note.data.description && (
+          <p class="text-sm text-neutral-500 mt-1">{note.data.description}</p>
+        )}
+      </a>
+    ))}
+  </div>
+</BaseLayout>

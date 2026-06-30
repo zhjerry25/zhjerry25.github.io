@@ -1,0 +1,35 @@
+---
+import BaseLayout from "../../layouts/Baselayout.astro";
+import { en } from "../../i18n/en";
+import { zh } from "../../i18n/zh";
+import type { Lang } from "../../i18n/utils";
+import type { Translations } from "../../i18n/types";
+
+export function getStaticPaths() {
+  return [
+    { params: { lang: "en" }, props: { t: en } },
+    { params: { lang: "zh" }, props: { t: zh } },
+  ];
+}
+
+const { lang } = Astro.params as { lang: Lang };
+const { t } = Astro.props as { t: Translations };
+---
+
+<BaseLayout
+  pageTitle={t.resources.title}
+  lang={lang}
+  t={t}
+  seoDescription={t.seo.resourcesDescription}
+  canonicalURL={`/${lang}/resources/`}
+>
+  <p class="text-neutral-500 mb-6">{t.resources.description}</p>
+
+  <div class="prose prose-neutral max-w-none">
+    <p>{t.resources.wip1}</p>
+    <p>
+      {t.resources.wip2
+        .replace("Notes", t.nav.notes.toLowerCase())}
+    </p>
+  </div>
+</BaseLayout>
