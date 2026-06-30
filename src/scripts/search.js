@@ -29,18 +29,9 @@ async function loadPagefind() {
   }
   pagefindLoading = true;
   try {
-    await new Promise((resolve, reject) => {
-      // Avoid static analysis: Pagefind JS only exists after postbuild
-      const src = "/pagefind/pagefind.js";
-      const script = document.createElement("script");
-      script.src = src;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error("Failed to load Pagefind"));
-      document.head.appendChild(script);
-    });
-    if (window.Pagefind) {
-      pagefind = new window.Pagefind();
-    }
+    // Use a variable so the bundler cannot statically resolve this path
+    const pagefindPath = "/pagefind/pagefind.js";
+    pagefind = await import(/* @vite-ignore */ pagefindPath);
     return true;
   } catch {
     pagefindFailed = true;
