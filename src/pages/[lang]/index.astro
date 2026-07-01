@@ -38,7 +38,7 @@ const formatDate = (d: Date) =>
 const categoryKeys = ["chem", "cs", "mathphy", "others", "resources", "toolbox"] as const;
 ---
 
-<BaseLayout pageTitle="Home Page" lang={lang} t={t} seoDescription={t.seo.homeDescription} canonicalURL={`/${lang}/`}>
+<BaseLayout pageTitle="Home Page" lang={lang} t={t} seoDescription={t.seo.homeDescription} canonicalURL={`/${lang}/`} searchable={false}>
   <!-- Section 1: Hero -->
   <section class="mb-12">
     <h1 class="text-4xl font-bold text-gray-900 mb-3">{t.home.hero}</h1>

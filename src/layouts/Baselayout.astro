@@ -11,6 +11,7 @@ import "../styles/global.css";
 interface Props {
   pageTitle: string;
   showTitle?: boolean;
+  searchable?: boolean;
   lang: Lang;
   t: Translations;
   seoDescription?: string;
@@ -24,6 +25,7 @@ interface Props {
 const {
   pageTitle,
   showTitle = true,
+  searchable = true,
   lang,
   t,
   seoDescription,
@@ -54,7 +56,7 @@ const description = seoDescription || t.seo.homeDescription;
       tags={tags}
     />
   </head>
-  <body>
+  <body {...(!searchable ? { "data-pagefind-ignore": "" } : {})}>
     <div class="flex min-h-screen">
       <Navigation lang={lang} t={t} />
 
@@ -66,7 +68,7 @@ const description = seoDescription || t.seo.homeDescription;
 
       <div class="flex min-w-0 flex-1 flex-col">
         <Header pageTitle={pageTitle} lang={lang} t={t} />
-        <main class="flex-1 px-4 py-6 md:px-8">
+        <main class="flex-1 px-4 py-6 md:px-8" {...(searchable ? { "data-pagefind-body": "" } : {})}>
           <div class="max-w-3xl mx-auto w-full">
             {showTitle && pageTitle && pageTitle !== "Home Page" && (
               <h1 class="mb-6 text-2xl font-bold text-gray-900">{pageTitle}</h1>

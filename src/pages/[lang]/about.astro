@@ -22,6 +22,7 @@ const { t } = Astro.props as { t: Translations };
   t={t}
   seoDescription={t.seo.aboutDescription}
   canonicalURL={`/${lang}/about/`}
+  searchable={false}
 >
   <h2>{t.about.content}</h2>
 </BaseLayout>

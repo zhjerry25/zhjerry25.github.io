@@ -66,29 +66,37 @@ const { lang, t } = Astro.props;
   </div>
 </div>
 
-<style>
+<style is:global>
   /* Show/hide — toggled via JS adding .show class */
   #search-modal.show {
     display: flex !important;
   }
 
-  /* Search result styles */
-  .search-list {
+  /* Search result styles — namespaced under #search-modal to avoid leaking */
+  #search-modal .search-list {
     list-style: none;
     margin: 0;
     padding: 0;
   }
 
-  .search-result-item {
-    padding: 0.75rem 0;
+  #search-modal .search-result-item {
+    padding: 0.85rem 0.75rem;
+    margin: 0 -0.75rem;
     border-bottom: 1px solid #f5f5f5;
+    border-radius: 6px;
+    transition: background-color 0.15s;
   }
 
-  .search-result-item:last-child {
+  #search-modal .search-result-item:last-child {
     border-bottom: none;
   }
 
-  .search-result-link {
+  #search-modal .search-result-item:hover,
+  #search-modal .search-result-item.active {
+    background-color: #fdf2f8;
+  }
+
+  #search-modal .search-result-link {
     display: flex;
     align-items: baseline;
     gap: 0.5rem;
@@ -96,46 +104,52 @@ const { lang, t } = Astro.props;
     color: inherit;
   }
 
-  .search-result-link:hover .search-result-title {
-    color: #be185d;
+  #search-modal .search-result-link:hover .search-result-title {
+    color: #db277b;
   }
 
-  .search-result-title {
+  #search-modal .search-result-title {
+    font-size: 1rem;
     font-weight: 600;
     color: #171717;
     transition: color 0.15s;
+    line-height: 1.4;
   }
 
-  .search-result-lang {
-    font-size: 0.7rem;
-    color: #a3a3a3;
-    border: 1px solid #e5e5e5;
-    border-radius: 3px;
-    padding: 0 0.25rem;
+  #search-modal .search-result-lang {
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: #db277b;
+    border: 1px solid #f9a8d4;
+    background: #fdf2f8;
+    border-radius: 4px;
+    padding: 0.05rem 0.4rem;
     flex-shrink: 0;
+    letter-spacing: 0.02em;
   }
 
-  .search-result-excerpt {
-    margin: 0.25rem 0 0 0;
+  #search-modal .search-result-excerpt {
+    margin: 0.35rem 0 0 0;
     font-size: 0.875rem;
     color: #737373;
-    line-height: 1.5;
+    line-height: 1.6;
   }
 
-  .search-result-excerpt mark {
+  #search-modal .search-result-excerpt mark {
     background-color: #fce7f3;
     color: #9d174d;
     border-radius: 2px;
-    padding: 0 0.125rem;
+    padding: 0.05rem 0.2rem;
+    font-weight: 500;
   }
 
-  .search-count {
+  #search-modal .search-count {
     font-size: 0.75rem;
     color: #a3a3a3;
-    margin: 0 0 0.5rem 0;
+    margin: 0 0 0.65rem 0.25rem;
   }
 
-  .search-hint {
+  #search-modal .search-hint {
     font-size: 0.875rem;
     color: #a3a3a3;
     text-align: center;

@@ -123,14 +123,10 @@ async function doSearch(query) {
 
     for (const result of search.results.slice(0, 20)) {
       const data = await result.data();
-      // Determine language from URL — results from /en/ vs /zh/
-      const langPrefix = data.url.startsWith("/zh/") ? "zh" : "en";
-      const langLabel = langPrefix === "zh" ? "中文" : "EN";
       html += `
         <li class="search-result-item">
           <a href="${data.url}" class="search-result-link">
             <span class="search-result-title">${data.meta?.title || data.url}</span>
-            <span class="search-result-lang">${langLabel}</span>
           </a>
           <p class="search-result-excerpt">${data.excerpt || ""}</p>
         </li>`;
