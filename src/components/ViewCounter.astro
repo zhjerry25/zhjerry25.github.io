@@ -6,13 +6,14 @@ interface Props {
 
 const { path, mode = "card" } = Astro.props;
 const goatcounter = "zhjerry25";
-const apiUrl = `https://${goatcounter}.goatcounter.com/counter//${encodeURIComponent(path)}.json`;
+const apiEn = `https://${goatcounter}.goatcounter.com/counter///en/notes/${encodeURIComponent(path)}/.json`;
+const apiZh = `https://${goatcounter}.goatcounter.com/counter///zh/notes/${encodeURIComponent(path)}/.json`;
 ---
 
 <span
   class="view-counter"
-  data-path={path}
-  data-api={apiUrl}
+  data-api-en={apiEn}
+  data-api-zh={apiZh}
   data-mode={mode}
 >
   <span class="view-count-text">&mdash;</span>
@@ -21,20 +22,23 @@ const apiUrl = `https://${goatcounter}.goatcounter.com/counter//${encodeURICompo
 <script is:inline>
   function loadViewCounts() {
     document.querySelectorAll<HTMLElement>(".view-counter").forEach((el) => {
-      const api = el.dataset.api;
-      if (!api) return;
+      const apiEn = el.dataset.apiEn;
+      const apiZh = el.dataset.apiZh;
+      if (!apiEn || !apiZh) return;
       const mode = el.dataset.mode || "card";
 
-      fetch(api)
-        .then((res) => res.json())
-        .then((data) => {
-          const count = data.count || "0";
+      Promise.all([
+        fetch(apiEn).then((r) => r.json()).catch(() => ({ count: "0" })),
+        fetch(apiZh).then((r) => r.json()).catch(() => ({ count: "0" })),
+      ])
+        .then(([en, zh]) => {
+          const total = (parseInt(en.count, 10) || 0) + (parseInt(zh.count, 10) || 0);
           const textEl = el.querySelector(".view-count-text");
           if (textEl) {
             if (mode === "card") {
-              textEl.textContent = `\u{1F441} ${count}`;
+              textEl.textContent = `\u{1F441} ${total}`;
             } else {
-              textEl.textContent = `\u{1F441} ${count} views`;
+              textEl.textContent = `\u{1F441} ${total} views`;
             }
           }
         })
