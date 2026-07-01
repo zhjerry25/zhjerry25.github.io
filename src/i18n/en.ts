@@ -2,7 +2,7 @@ import type { Translations } from "./types";
 
 export const en = {
   site: {
-    name: "Astrchem.com",
+    name: "Astrc",
     description: "Personal knowledge base",
   },
   nav: {
@@ -47,7 +47,7 @@ export const en = {
     },
   },
   home: {
-    hero: "Astrchem.com",
+    hero: "Astrc",
     tagline:
       "A personal knowledge base covering chemistry, computer science, mathematics, physics, and whatever else I'm learning. Notes, resources, and tools — loosely organized, constantly evolving.",
     recentUpdates: "Recent Updates",
@@ -114,7 +114,7 @@ export const en = {
     toolboxDescription: "Tools, utilities, and workflows I use regularly.",
   },
   rss: {
-    title: "Astrchem Notes",
+    title: "Astrc Notes",
     description: "Personal knowledge base",
   },
   search: {

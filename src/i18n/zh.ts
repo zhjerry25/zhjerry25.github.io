@@ -2,7 +2,7 @@ import type { Translations } from "./types";
 
 export const zh = {
   site: {
-    name: "Astrchem.com",
+    name: "Astrc",
     description: "个人知识库",
   },
   nav: {
@@ -47,7 +47,7 @@ export const zh = {
     },
   },
   home: {
-    hero: "Astrchem.com",
+    hero: "Astrc",
     tagline:
       "一个个人知识库，涵盖化学、计算机科学、数学、物理以及我正在学习的各种内容。笔记、资源和工具——松散整理，持续更新。",
     recentUpdates: "最近更新",
@@ -111,7 +111,7 @@ export const zh = {
     toolboxDescription: "我日常使用的工具、实用程序和工作流。",
   },
   rss: {
-    title: "Astrchem 笔记",
+    title: "Astrc 笔记",
     description: "个人知识库",
   },
   search: {
