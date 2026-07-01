@@ -36,9 +36,9 @@ const apiZh = `https://${goatcounter}.goatcounter.com/counter/zh/notes/${encodeU
           const textEl = el.querySelector(".view-count-text");
           if (textEl) {
             if (mode === "card") {
-              textEl.textContent = `\u{1F441} ${total}`;
+              textEl.textContent = `${total}`;
             } else {
-              textEl.textContent = `\u{1F441} ${total} views`;
+              textEl.textContent = `${total} views`;
             }
           }
         })
