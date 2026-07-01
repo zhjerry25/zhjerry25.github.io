@@ -6,8 +6,8 @@ interface Props {
 
 const { path, mode = "card" } = Astro.props;
 const goatcounter = "zhjerry25";
-const apiEn = `https://${goatcounter}.goatcounter.com/counter///en/notes/${encodeURIComponent(path)}/.json`;
-const apiZh = `https://${goatcounter}.goatcounter.com/counter///zh/notes/${encodeURIComponent(path)}/.json`;
+const apiEn = `https://${goatcounter}.goatcounter.com/counter/en/notes/${encodeURIComponent(path)}.json`;
+const apiZh = `https://${goatcounter}.goatcounter.com/counter/zh/notes/${encodeURIComponent(path)}.json`;
 ---
 
 <span
@@ -21,7 +21,7 @@ const apiZh = `https://${goatcounter}.goatcounter.com/counter///zh/notes/${encod
 
 <script is:inline>
   function loadViewCounts() {
-    document.querySelectorAll<HTMLElement>(".view-counter").forEach((el) => {
+    document.querySelectorAll(".view-counter").forEach((el) => {
       const apiEn = el.dataset.apiEn;
       const apiZh = el.dataset.apiZh;
       if (!apiEn || !apiZh) return;
