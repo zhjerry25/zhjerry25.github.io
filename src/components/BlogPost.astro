@@ -1,5 +1,7 @@
 ---
-const { title, url, date, tags, label, description } = Astro.props;
+import ViewCounter from "./ViewCounter.astro";
+
+const { title, url, date, tags, label, description, noteId } = Astro.props;
 ---
 
 <a
@@ -25,7 +27,10 @@ const { title, url, date, tags, label, description } = Astro.props;
       </span>
     )}
   </div>
-  <h3 class="text-base font-medium text-gray-900">{title}</h3>
+  <div class="flex items-center justify-between gap-2">
+    <h3 class="text-base font-medium text-gray-900 min-w-0 truncate">{title}</h3>
+    {noteId && <ViewCounter path={noteId} mode="card" />}
+  </div>
   {description && (
     <p class="text-sm text-neutral-500 mt-1 line-clamp-2">{description}</p>
   )}

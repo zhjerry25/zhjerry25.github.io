@@ -53,6 +53,7 @@ const catMeta = t.categoryMeta[category as keyof typeof t.categoryMeta];
           date={formatDate(note.data.pubDate)}
           tags={note.data.tags}
           description={note.data.description}
+          noteId={note.id}
         />
       ))}
     </div>

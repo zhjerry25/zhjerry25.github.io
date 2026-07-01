@@ -52,6 +52,7 @@ const sortedNotes = allNotes.sort(
           label={getCategoryLabel(note.id)}
           date={formatDate(note.data.pubDate)}
           description={note.data.description}
+          noteId={note.id}
         />
       ))}
     </div>

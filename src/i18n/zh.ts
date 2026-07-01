@@ -119,6 +119,9 @@ export const zh = {
     noResults: "未找到结果。",
     closeAriaLabel: "关闭搜索",
   },
+  viewCount: "次阅读",
+  comments: "评论",
+  guestbook: "留言板",
   notFound: {
     title: "页面未找到",
     message: "您要找的页面不存在。",

@@ -1,0 +1,72 @@
+---
+interface Props {
+  path: string;
+  mode?: "card" | "full";
+}
+
+const { path, mode = "card" } = Astro.props;
+const goatcounter = "zhjerry25";
+const apiUrl = `https://${goatcounter}.goatcounter.com/counter//${encodeURIComponent(path)}.json`;
+---
+
+<span
+  class="view-counter"
+  data-path={path}
+  data-api={apiUrl}
+  data-mode={mode}
+>
+  <span class="view-count-text">&mdash;</span>
+</span>
+
+<script is:inline>
+  function loadViewCounts() {
+    document.querySelectorAll<HTMLElement>(".view-counter").forEach((el) => {
+      const api = el.dataset.api;
+      if (!api) return;
+      const mode = el.dataset.mode || "card";
+
+      fetch(api)
+        .then((res) => res.json())
+        .then((data) => {
+          const count = data.count || "0";
+          const textEl = el.querySelector(".view-count-text");
+          if (textEl) {
+            if (mode === "card") {
+              textEl.textContent = `\u{1F441} ${count}`;
+            } else {
+              textEl.textContent = `\u{1F441} ${count} views`;
+            }
+          }
+        })
+        .catch(() => {
+          const textEl = el.querySelector(".view-count-text");
+          if (textEl) textEl.textContent = "";
+        });
+    });
+  }
+
+  // Run on load
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", loadViewCounts);
+  } else {
+    loadViewCounts();
+  }
+</script>
+
+<style is:global>
+  .view-counter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: #9ca3af;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .view-counter[data-mode="full"] {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 2rem;
+    padding-top: 0;
+  }
+</style>

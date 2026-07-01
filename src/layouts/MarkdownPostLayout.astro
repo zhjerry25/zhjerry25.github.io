@@ -2,6 +2,8 @@
 import BaseLayout from "./Baselayout.astro";
 import { getLocale, type Lang } from "../i18n/utils";
 import type { Translations } from "../i18n/types";
+import ViewCounter from "../components/ViewCounter.astro";
+import GiscusComments from "../components/GiscusComments.astro";
 
 interface Props {
   frontmatter: {
@@ -13,9 +15,10 @@ interface Props {
   lang: Lang;
   t: Translations;
   canonicalURL: string;
+  noteId?: string;
 }
 
-const { frontmatter, lang, t, canonicalURL } = Astro.props;
+const { frontmatter, lang, t, canonicalURL, noteId } = Astro.props;
 const locale = getLocale(lang);
 ---
 
@@ -64,5 +67,13 @@ const locale = getLocale(lang);
     <div class="prose prose-neutral max-w-none">
       <slot />
     </div>
+
+    {noteId && (
+      <div class="mt-10 pt-6 border-t border-neutral-200">
+        <ViewCounter path={noteId} mode="full" />
+      </div>
+    )}
   </article>
+
+  {noteId && <GiscusComments term={noteId} lang={lang} />}
 </BaseLayout>

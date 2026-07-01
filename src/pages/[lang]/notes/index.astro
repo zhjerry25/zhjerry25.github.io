@@ -52,6 +52,7 @@ const formatDate = (d: Date) =>
           date={formatDate(note.data.pubDate)}
           tags={note.data.tags}
           description={note.data.description}
+          noteId={note.id}
         />
       ))}
     </div>

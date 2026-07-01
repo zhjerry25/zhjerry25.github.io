@@ -122,6 +122,9 @@ export const en = {
     noResults: "No results found.",
     closeAriaLabel: "Close search",
   },
+  viewCount: "views",
+  comments: "Comments",
+  guestbook: "Guestbook",
   notFound: {
     title: "Page Not Found",
     message: "The page you're looking for doesn't exist.",

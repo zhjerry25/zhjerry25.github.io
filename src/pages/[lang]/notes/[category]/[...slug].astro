@@ -39,6 +39,7 @@ const { Content } = await render(post);
   lang={lang}
   t={t}
   canonicalURL={`/${lang}/notes/${post.id}/`}
+  noteId={post.id}
 >
   <Content />
 </MarkdownPostLayout>

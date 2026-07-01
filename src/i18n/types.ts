@@ -93,6 +93,9 @@ export interface Translations {
     noResults: string;
     closeAriaLabel: string;
   };
+  viewCount: string;
+  comments: string;
+  guestbook: string;
   notFound: {
     title: string;
     message: string;
