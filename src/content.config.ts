@@ -10,12 +10,13 @@ import { z } from "astro/zod";
 // (e.g., "chem/reaction-mechanisms" → category: chem).
 const notes = defineCollection({
   loader: glob({ pattern: '**/[^_]*.md', base: "./src/notes" }),
-  schema: z.object({
+  schema: ({ image }) => z.object({
     title: z.string(),
     pubDate: z.date(),
     description: z.string().optional(),
     tags: z.array(z.string()).optional().default([]),
-    image: z.string().optional(), // relative path to co-located image, e.g. "./diagram.png"
+    // Co-located image, validated at build time and resolved to ImageMetadata
+    image: image().optional(),
   }),
 });
 

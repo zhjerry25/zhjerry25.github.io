@@ -6,10 +6,6 @@ import sitemap from "@astrojs/sitemap";
 
 import tailwindcss from "@tailwindcss/vite";
 
-import { unified } from "@astrojs/markdown-remark";
-
-import rehypeImageOptimizer from "./src/plugins/rehype-image-optimizer";
-
 // https://astro.build/config
 export default defineConfig({
   site: "https://zhjerry25.github.io",
@@ -40,9 +36,13 @@ export default defineConfig({
     }),
   ],
 
-  markdown: unified({
-    rehypePlugins: [rehypeImageOptimizer],
-  }),
+  // Native responsive images for markdown body images and <Image>. The custom
+  // rehype plugin used previously was dead code — Astro already optimizes
+  // markdown images via remark-collect-images → rehype-images → getImage.
+  image: {
+    layout: "constrained",
+    responsiveStyles: true,
+  },
 
   vite: {
     plugins: [tailwindcss()],
