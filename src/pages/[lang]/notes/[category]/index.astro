@@ -2,6 +2,7 @@
 import { getCollection } from "astro:content";
 import BaseLayout from "../../../../layouts/Baselayout.astro";
 import BlogPost from "../../../../components/BlogPost.astro";
+import { getReadingTime } from "../../../../utils/readingTime";
 import { getLocale, type Lang } from "../../../../i18n/utils";
 import { en } from "../../../../i18n/en";
 import { zh } from "../../../../i18n/zh";
@@ -46,16 +47,20 @@ const catMeta = t.categoryMeta[category as keyof typeof t.categoryMeta];
 
   {posts.length > 0 ? (
     <div class="space-y-3">
-      {posts.map((note) => (
-        <BlogPost
-          title={note.data.title}
-          url={`/${lang}/notes/${note.id}/`}
-          date={formatDate(note.data.pubDate)}
-          tags={note.data.tags}
-          description={note.data.description}
-          noteId={note.id}
-        />
-      ))}
+      {posts.map((note) => {
+        const { short: readingTime } = getReadingTime(note.body || "", lang);
+        return (
+          <BlogPost
+            title={note.data.title}
+            url={`/${lang}/notes/${note.id}/`}
+            date={formatDate(note.data.pubDate)}
+            tags={note.data.tags}
+            description={note.data.description}
+            noteId={note.id}
+            readingTime={readingTime}
+          />
+        );
+      })}
     </div>
   ) : (
     <p class="text-neutral-400 text-sm">{t.recents.empty}</p>

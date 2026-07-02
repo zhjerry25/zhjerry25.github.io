@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from "astro:content";
 import MarkdownPostLayout from "../../../../layouts/MarkdownPostLayout.astro";
+import { getReadingTime } from "../../../../utils/readingTime";
 import { en } from "../../../../i18n/en";
 import { zh } from "../../../../i18n/zh";
 import type { Lang } from "../../../../i18n/utils";
@@ -9,20 +10,23 @@ import type { Translations } from "../../../../i18n/types";
 export async function getStaticPaths() {
   const allNotes = await getCollection("notes");
 
-  const paths: { params: { lang: string; category: string; slug: string }; props: { t: Translations; post: typeof allNotes[number] } }[] = [];
+  const paths: { params: { lang: string; category: string; slug: string }; props: { t: Translations; post: (typeof allNotes)[number]; readingTime: string } }[] = [];
 
   for (const note of allNotes) {
     const parts = note.id.split("/");
     const category = parts.length > 1 ? parts[0] : "others";
     const slug = parts.length > 1 ? parts.slice(1).join("/") : note.id;
 
+    const rtEn = getReadingTime(note.body || "", "en");
+    const rtZh = getReadingTime(note.body || "", "zh");
+
     paths.push({
       params: { lang: "en", category, slug },
-      props: { t: en, post: note },
+      props: { t: en, post: note, readingTime: rtEn.full },
     });
     paths.push({
       params: { lang: "zh", category, slug },
-      props: { t: zh, post: note },
+      props: { t: zh, post: note, readingTime: rtZh.full },
     });
   }
 
@@ -30,7 +34,7 @@ export async function getStaticPaths() {
 }
 
 const { lang } = Astro.params as { lang: Lang };
-const { t, post } = Astro.props as { t: Translations; post: any };
+const { t, post, readingTime } = Astro.props as { t: Translations; post: any; readingTime?: string };
 const { Content } = await render(post);
 ---
 
@@ -40,6 +44,7 @@ const { Content } = await render(post);
   t={t}
   canonicalURL={`/${lang}/notes/${post.id}/`}
   noteId={post.id}
+  readingTime={readingTime}
 >
   <Content />
 </MarkdownPostLayout>
