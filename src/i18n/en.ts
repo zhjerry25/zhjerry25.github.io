@@ -47,7 +47,7 @@ export const en = {
     },
   },
   home: {
-    hero: "Home",
+    hero: "Astrc",
     tagline:
       "A personal knowledge base covering chemistry, computer science, mathematics, physics, and whatever else I'm learning. Notes, resources, and tools — loosely organized, constantly evolving.",
     recentUpdates: "Recent Updates",

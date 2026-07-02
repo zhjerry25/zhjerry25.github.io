@@ -47,7 +47,7 @@ export const zh = {
     },
   },
   home: {
-    hero: "首页",
+    hero: "Astrc",
     tagline:
       "一个个人知识库，涵盖化学、计算机科学、数学、物理以及我正在学习的各种内容。笔记、资源和工具——松散整理，持续更新。",
     recentUpdates: "最近更新",
