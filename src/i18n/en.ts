@@ -49,20 +49,47 @@ export const en = {
   home: {
     hero: "Astrc",
     tagline:
-      "A personal knowledge base covering chemistry, computer science, mathematics, physics, and whatever else I'm learning. Notes, resources, and tools — loosely organized, constantly evolving.",
+      "Astrc is the personal knowledge base of a high school student, covering chemistry, computer science, math & physics, and whatever else catches my interest ^_^ Notes, resources, and tools.",
     recentUpdates: "Recent Updates",
     noNotes: "No notes yet. Check back soon!",
     viewAll: "View all notes →",
     whatIsThis: "What is this?",
     whatIsThisP1:
-      "This is my personal knowledge garden — a place where I write down what I learn, organize resources I find useful, and share tools that make my workflow better. It's not a polished blog; it's a living collection of notes that grow and evolve over time.",
+      "This is a personal website I built in the summer of '26 to store my notes and resources — feel free to read and share. Navigate using the <strong>sidebar tabs (or the top-left button on mobile)</strong> to explore different sections.",
     whatIsThisP2:
-      "You'll find chemistry lecture notes alongside computer science cheatsheets, physics derivations next to random tool reviews. Everything is connected by tags, and the sidebar navigation should help you find your way around.",
+      "This site is <strong>not</strong> fully AI-generated, and it's <strong>not</strong> built from a template.",
+    techStack: "Tech Stack",
+    techStackItems: [
+      { name: "Framework", desc: "Astro / Tailwind CSS", url: "https://astro.build" },
+      { name: "Comments", desc: "Giscus", url: "https://giscus.app" },
+      { name: "Analytics", desc: "GoatCounter", url: "https://www.goatcounter.com" },
+    ],
+    githubStar:
+      'If you like this, consider dropping a star on <a href="https://github.com/zhjerry25/zhjerry25.github.io" target="_blank" rel="noopener noreferrer">GitHub</a> — your support means the world to me ♪( ´▽｀)',
+    contactTitle: "You can also find me here",
+    contactItems: [
+      { label: "My GitHub", url: "https://github.com/zhjerry25", note: "check out my other projects too" },
+      { label: "My Bilibili", url: "#" },
+      { label: "My QQ", url: "#" },
+      { label: "My Zhihu", url: "#" },
+    ],
+    contactSidebarNote:
+      "Follow me on other platforms too! (when I get around to it)<br>You can also jump to them anytime via the icons at the <strong>bottom of the sidebar</strong>.",
     exploreByCategory: "Explore by Category",
   },
   about: {
-    title: "About Me",
-    content: "About Me",
+    title: "About",
+    license:
+      "Unless otherwise noted, all content on this site is licensed under <strong>CC BY-SA 4.0</strong>. This means you are free to copy, distribute, display, and remix my work, as long as you give appropriate credit and share any derivative works under the same license.",
+    actionsTitle: "You can",
+    actions: [
+      "Comment on any page using your GitHub account (emoji reactions too!)",
+      "Send feedback or just say hi via my contact info",
+      "Contribute useful resources or tools through my contact info",
+    ],
+    donationText:
+      "If the content here has helped you, consider buying me a coffee ☕<br>The domain costs about $11/year — your support keeps the author up all night writing more ♪( ´▽｀)",
+    donationImage: "Donation QR Code",
   },
   recents: {
     title: "Recents",
@@ -72,7 +99,7 @@ export const en = {
   notes: {
     title: "Notes",
     description: "All notes across every category.",
-    empty: "No notes yet. Start writing!",
+    empty: "No notes yet. Check back soon!",
   },
   tags: {
     title: "Tags",

@@ -6,3 +6,18 @@
   --color-brand-100: #f6f5f4;
   --color-brand-200: #f9f9f9;
 }
+
+/* Override @tailwindcss/typography defaults to match site design */
+.prose a {
+  color: var(--color-pink-700);
+  text-decoration: none;
+}
+
+.prose a:hover {
+  text-decoration: underline;
+}
+
+.prose strong {
+  font-weight: 500;
+  color: var(--color-gray-800);
+}

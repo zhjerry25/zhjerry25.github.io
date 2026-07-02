@@ -49,20 +49,47 @@ export const zh = {
   home: {
     hero: "Astrc",
     tagline:
-      "一个个人知识库，涵盖化学、计算机科学、数学、物理以及我正在学习的各种内容。笔记、资源和工具——松散整理，持续更新。",
+      "本站名为Astrc，是一个高中生的个人知识库，主要更新化学、计算机、数理和其它我感兴趣的领域的内容 ^_^ 整理笔记、资源和工具，欢迎关注",
     recentUpdates: "最近更新",
     noNotes: "暂无笔记，请稍后再来！",
     viewAll: "查看所有笔记 →",
     whatIsThis: "这是什么？",
     whatIsThisP1:
-      "这是我的个人知识库——一个记录所学、整理资源、分享工具的地方。它不是一个精美的博客，而是一个不断生长和演变的笔记集合。",
+      "这是我在26年夏建立的一个个人网页，存储我的笔记和资源，欢迎阅读和转载。你可以点击<strong>侧边标签页 (或移动端左上方按钮)</strong> 切换栏目",
     whatIsThisP2:
-      "你会发现化学讲义与计算机科学速查表相伴，物理推导与工具评测相邻。所有内容通过标签关联，侧边栏导航可以帮助你找到方向。",
+      "本网站<strong>不是</strong>人工智能包揽生成，也<strong>没有</strong>使用模板",
+    techStack: "技术栈",
+    techStackItems: [
+      { name: "框架", desc: "Astro / Tailwind CSS", url: "https://astro.build" },
+      { name: "评论", desc: "Giscus", url: "https://giscus.app" },
+      { name: "统计", desc: "GoatCounter", url: "https://www.goatcounter.com" },
+    ],
+    githubStar:
+      '如果觉得不错，欢迎在 <a href="https://github.com/zhjerry25/zhjerry25.github.io" target="_blank" rel="noopener noreferrer">Github</a> 支持，你的一个star是对我莫大的鼓励 ♪( ´▽｀)',
+    contactTitle: "除此之外，以下是我的一些联系方式",
+    contactItems: [
+      { label: "我的Github主页", url: "https://github.com/zhjerry25", note: "欢迎关注我的其它项目" },
+      { label: "我的Bilibili主页", url: "#" },
+      { label: "我的QQ账号", url: "#" },
+      { label: "我的知乎首页", url: "#" },
+    ],
+    contactSidebarNote:
+      "欢迎支持我在其它平台的内容！（如果有的话）<br>你也可以随时通过访问网页<strong>侧栏下方</strong>的图标跳转",
     exploreByCategory: "按分类浏览",
   },
   about: {
-    title: "关于我",
-    content: "关于我",
+    title: "关于",
+    license:
+      "除额外说明外，本网站遵循<strong>CC BY-SA 4.0协议</strong>，这意味着你可以自由复制、分发、展示和演绎我的作品，只要你给予适当的署名，并在相同的许可证下分享衍生作品",
+    actionsTitle: "你可以",
+    actions: [
+      "使用Github账号对本网站页面进行评论，还可以发表情",
+      "通过我的联系方式，对本网站提出意见/交个朋友",
+      "通过我的联系方式，为本网站贡献有意义的资源/工具",
+    ],
+    donationText:
+      "如果这个网站的内容对你有帮助，欢迎请我喝杯咖啡 ☕<br>域名每年大约 $11，你的支持会让作者连夜更新 ♪( ´▽｀)",
+    donationImage: "赞赏码",
   },
   recents: {
     title: "最近更新",
@@ -72,7 +99,7 @@ export const zh = {
   notes: {
     title: "笔记",
     description: "所有分类的笔记。",
-    empty: "暂无笔记，开始写吧！",
+    empty: "暂无笔记，请稍后再来！",
   },
   tags: {
     title: "标签",

@@ -35,11 +35,21 @@ export interface Translations {
     whatIsThis: string;
     whatIsThisP1: string;
     whatIsThisP2: string;
+    techStack: string;
+    techStackItems: { name: string; desc: string; url?: string }[];
+    githubStar: string;
+    contactTitle: string;
+    contactItems: { label: string; url: string; note?: string }[];
+    contactSidebarNote: string;
     exploreByCategory: string;
   };
   about: {
     title: string;
-    content: string;
+    license: string;
+    actionsTitle: string;
+    actions: string[];
+    donationText: string;
+    donationImage: string;
   };
   recents: {
     title: string;

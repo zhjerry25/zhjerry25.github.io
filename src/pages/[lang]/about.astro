@@ -1,9 +1,12 @@
 ---
 import BaseLayout from "../../layouts/Baselayout.astro";
+import GiscusComments from "../../components/GiscusComments.astro";
 import { en } from "../../i18n/en";
 import { zh } from "../../i18n/zh";
 import type { Lang } from "../../i18n/utils";
 import type { Translations } from "../../i18n/types";
+import { Image } from "astro:assets";
+import supportImage from "../../assets/images/support.jpg";
 
 export function getStaticPaths() {
   return [
@@ -24,5 +27,29 @@ const { t } = Astro.props as { t: Translations };
   canonicalURL={`/${lang}/about/`}
   searchable={false}
 >
-  <h2>{t.about.content}</h2>
+  <section class="mb-12">
+    <div class="prose prose-neutral max-w-none text-neutral-600">
+      <p set:html={t.about.license} />
+
+      <p class="font-medium text-gray-800">{t.about.actionsTitle}</p>
+      <ul class="list-disc pl-5 space-y-1">
+        {t.about.actions.map((action) => (
+          <li>{action}</li>
+        ))}
+      </ul>
+
+      <p set:html={t.about.donationText} />
+    </div>
+  </section>
+
+  <section class="mb-12">
+    <Image
+      src={supportImage}
+      alt={t.about.donationImage}
+      loading="lazy"
+      class="rounded-lg shadow-sm mx-auto block max-w-xs w-full"
+    />
+  </section>
+
+  <GiscusComments term="about" lang={lang} t={t} />
 </BaseLayout>
