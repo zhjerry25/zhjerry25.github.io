@@ -1,11 +1,12 @@
 /**
  * Rehype plugin: optimize local images in markdown content.
  *
- * - Converts local PNG/JPEG images to WebP
+ * - Converts local PNG/JPEG images to WebP (800w max, quality 80)
  * - Generates 1x (800w) and 2x (1600w) srcset variants
- * - Adds loading="lazy" and decoding="async"
- * - Skips external URLs, SVGs, and images ≤50KB
- * - Writes output to dist/_images/<contenthash>.webp
+ * - Copies SVGs to dist/_images/ with content-hash naming
+ * - Adds loading="lazy" and decoding="async" to all images
+ * - Adds referrerpolicy="no-referrer" to external images
+ * - Writes output to dist/_images/<contenthash>.webp (or .svg)
  */
 import { visit } from "unist-util-visit";
 import type { Element, Root } from "hast";
@@ -17,7 +18,6 @@ import sharp from "sharp";
 
 const MAX_WIDTH = 800;
 const WEBP_QUALITY = 80;
-const SIZE_THRESHOLD = 50 * 1024; // 50KB
 const OUTPUT_DIR = "dist/_images";
 
 interface ImageFile {
@@ -44,8 +44,15 @@ function contentHash(buf: Buffer): string {
   return crypto.createHash("sha256").update(buf).digest("hex").slice(0, 12);
 }
 
+function ensureOutputDir() {
+  const dir = path.resolve(OUTPUT_DIR);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  return dir;
+}
+
 async function processImage(
-  resolvedPath: string,
   src: string,
   vfileDir: string,
 ): Promise<ImageFile | null> {
@@ -68,11 +75,7 @@ async function processImage(
       : 1;
     const outputHeight = Math.round(outputWidth * aspectRatio);
 
-    // Ensure output directory exists
-    const outputDir = path.resolve(OUTPUT_DIR);
-    if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir, { recursive: true });
-    }
+    const outputDir = ensureOutputDir();
 
     // Generate 1x version
     const img1x = `${hash}.webp`;
@@ -108,12 +111,20 @@ async function processImage(
   }
 }
 
-function shouldOptimize(filePath: string): boolean {
+/** Compute hash and copy SVG to dist/_images/<hash>.svg. Returns the hash or null. */
+function copySvg(fullPath: string): string | null {
   try {
-    const stat = fs.statSync(filePath);
-    return stat.size > SIZE_THRESHOLD;
-  } catch {
-    return false;
+    const buf = fs.readFileSync(fullPath);
+    const hash = contentHash(buf);
+    const outputDir = ensureOutputDir();
+    const outputPath = path.join(outputDir, `${hash}.svg`);
+    if (!fs.existsSync(outputPath)) {
+      fs.copyFileSync(fullPath, outputPath);
+    }
+    return hash;
+  } catch (err) {
+    console.warn(`[rehype-image] Failed to copy SVG ${fullPath}:`, err);
+    return null;
   }
 }
 
@@ -136,10 +147,9 @@ export default function rehypeImageOptimizer() {
     visit(tree, "element", (node: Element, index, parent: Element | undefined) => {
       if (node.tagName === "img" && node.properties?.src && parent) {
         const src = String(node.properties.src);
-        if (isLocalPath(src) && !isSvg(src) && !isExternalUrl(src)) {
+        if (isLocalPath(src) && !isExternalUrl(src)) {
           imgNodes.push({ node, index: index!, parent });
         }
-        // External URLs: add loading="lazy" and referrerpolicy
         if (isExternalUrl(src)) {
           node.properties.loading = "lazy";
           node.properties.decoding = "async";
@@ -157,32 +167,37 @@ export default function rehypeImageOptimizer() {
       let cached = processedMap.get(fullPath);
 
       if (!cached) {
-        const needOptimize = shouldOptimize(fullPath);
-        if (needOptimize) {
-          const result = await processImage(fullPath, src, vfileDir);
+        if (isSvg(src)) {
+          const hash = copySvg(fullPath);
+          if (hash) {
+            cached = { hash };
+            processedMap.set(fullPath, cached);
+          }
+        } else {
+          const result = await processImage(src, vfileDir);
           if (result) {
             cached = { hash: result.hash };
             processedMap.set(fullPath, cached);
           }
-        } else {
-          // Small image: mark as no-optimize needed (we still add lazy loading below)
-          processedMap.set(fullPath, { hash: "__small__" });
         }
       }
 
-      if (cached && cached.hash !== "__small__") {
-        // Replace with optimized WebP with srcset
-        const src1x = `/_images/${cached.hash}.webp`;
-        const src2x = `/_images/${cached.hash}@2x.webp`;
-        node.properties.src = src1x;
-        node.properties.srcset = `${src1x} 1x, ${src2x} 2x`;
-        node.properties.sizes = `(max-width: ${MAX_WIDTH}px) 100vw, ${MAX_WIDTH}px`;
-        node.properties.loading = "lazy";
-        node.properties.decoding = "async";
+      if (cached) {
+        if (isSvg(src)) {
+          node.properties.src = `/_images/${cached.hash}.svg`;
+          node.properties.loading = "lazy";
+        } else {
+          // Replace with optimized WebP with srcset
+          const src1x = `/_images/${cached.hash}.webp`;
+          const src2x = `/_images/${cached.hash}@2x.webp`;
+          node.properties.src = src1x;
+          node.properties.srcset = `${src1x} 1x, ${src2x} 2x`;
+          node.properties.sizes = `(max-width: ${MAX_WIDTH}px) 100vw, ${MAX_WIDTH}px`;
+          node.properties.loading = "lazy";
+          node.properties.decoding = "async";
+        }
       } else {
-        // Small image or optimization skipped: keep original src but add lazy
-        // For small images, we rewrite the relative path to a root-relative path
-        // that mirrors the source location so it works in the final build
+        // Processing failed: add lazy loading but keep original src as fallback
         node.properties.loading = "lazy";
         node.properties.decoding = "async";
       }

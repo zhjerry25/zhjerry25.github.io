@@ -6,8 +6,57 @@ import { en } from "../../../../i18n/en";
 import { zh } from "../../../../i18n/zh";
 import type { Lang } from "../../../../i18n/utils";
 import type { Translations } from "../../../../i18n/types";
+import path from "node:path";
+import fs from "node:fs";
+import crypto from "node:crypto";
+import sharp from "sharp";
 
 type Note = CollectionEntry<"notes">;
+
+const MAX_WIDTH = 800;
+const WEBP_QUALITY = 80;
+const OUTPUT_DIR = "dist/_images";
+
+/** Resolve a frontmatter `image` field to the optimized og:image URL. */
+async function resolveOgImage(imageField: string, noteId: string): Promise<string | undefined> {
+  // Resolve the relative path against the note's directory
+  const noteDir = path.dirname(path.join("src/notes", noteId));
+  const imagePath = path.resolve(noteDir, imageField);
+
+  if (!fs.existsSync(imagePath)) {
+    console.warn(`[og-image] Image not found: ${imagePath}`);
+    return undefined;
+  }
+
+  const buf = fs.readFileSync(imagePath);
+  const hash = crypto.createHash("sha256").update(buf).digest("hex").slice(0, 12);
+
+  // Generate optimized WebP if it doesn't exist yet (image may only be in frontmatter)
+  const outputDir = path.resolve(OUTPUT_DIR);
+  const webpPath = path.join(outputDir, `${hash}.webp`);
+  if (!fs.existsSync(webpPath)) {
+    try {
+      const metadata = await sharp(buf).metadata();
+      if (metadata.width) {
+        const w = Math.min(metadata.width, MAX_WIDTH);
+        const aspect = metadata.height ? metadata.height / metadata.width : 1;
+        const h = Math.round(w * aspect);
+        if (!fs.existsSync(outputDir)) {
+          fs.mkdirSync(outputDir, { recursive: true });
+        }
+        await sharp(buf)
+          .resize(w, h, { fit: "inside", withoutEnlargement: true })
+          .webp({ quality: WEBP_QUALITY })
+          .toFile(webpPath);
+      }
+    } catch (err) {
+      console.warn(`[og-image] Failed to process ${imageField}:`, err);
+      return undefined;
+    }
+  }
+
+  return `/_images/${hash}.webp`;
+}
 
 export async function getStaticPaths() {
   const allNotes = await getCollection("notes");
@@ -38,6 +87,12 @@ export async function getStaticPaths() {
 const { lang } = Astro.params as { lang: Lang };
 const { t, post, readingTime } = Astro.props as { t: Translations; post: Note; readingTime?: string };
 const { Content } = await render(post);
+
+// Resolve og:image — frontmatter stores a co-located relative path (e.g. "./cover.png"),
+// but we need the optimized /_images/<hash>.webp URL for social sharing.
+const ogImage = post.data.image
+  ? await resolveOgImage(post.data.image, post.id)
+  : undefined;
 ---
 
 <MarkdownPostLayout
@@ -47,7 +102,7 @@ const { Content } = await render(post);
   canonicalURL={`/${lang}/notes/${post.id}/`}
   noteId={post.id}
   readingTime={readingTime}
-  ogImage={post.data.image}
+  ogImage={ogImage}
 >
   <Content />
 </MarkdownPostLayout>
