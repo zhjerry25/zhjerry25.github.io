@@ -28,3 +28,6 @@ pnpm-debug.log*
 
 # context files
 CONTEXT.md
+
+# obsidian files
+src/notes/.obsidian/
