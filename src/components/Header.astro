@@ -7,9 +7,10 @@ interface Props {
   pageTitle: string;
   lang: Lang;
   t: Translations;
+  isHome?: boolean;
 }
 
-const { pageTitle, lang, t } = Astro.props;
+const { pageTitle, lang, t, isHome = false } = Astro.props;
 
 const ROUTE_LABELS: Record<string, string> = {
   "/": t.header.breadcrumbHome,
@@ -43,8 +44,8 @@ if (breadcrumbs.length === 0) {
   breadcrumbs.push({ label: t.header.breadcrumbHome, href: `/${lang}/` });
 }
 
-// Override last segment with pageTitle if available (but not for root "Home Page")
-if (pageTitle && pageTitle !== "Home Page" && pageTitle !== t.home.hero && breadcrumbs.length > 1) {
+// Override last segment with pageTitle if available (but not on the home page)
+if (pageTitle && !isHome && breadcrumbs.length > 1) {
   breadcrumbs[breadcrumbs.length - 1].label = pageTitle;
 }
 

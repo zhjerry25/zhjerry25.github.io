@@ -1,18 +1,16 @@
 ---
-import type { Lang } from "../i18n/utils";
 import type { Translations } from "../i18n/types";
 
 interface Props {
-  lang: Lang;
   t: Translations;
 }
 
-const { lang, t } = Astro.props;
+const { t } = Astro.props;
 ---
 
 <div
   id="search-modal"
-  class="show:hidden fixed inset-0 z-50 flex items-start justify-center pt-[15vh]"
+  class="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]"
   style="display: none;"
 >
   <!-- Backdrop -->

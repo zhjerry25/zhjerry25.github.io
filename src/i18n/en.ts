@@ -66,7 +66,7 @@ export const en = {
   },
   recents: {
     title: "Recents",
-    description: "All notes across all categories.",
+    description: "Latest 5 notes across all categories.",
     empty: "No notes yet. Check back soon!",
   },
   notes: {
@@ -87,7 +87,7 @@ export const en = {
       "Curated links, references, and learning materials I've found useful.",
     wip1:
       "This page is a work in progress. Resources will be organized by topic soon.",
-    wip2: "For now, check out the Notes sections for content.",
+    wip2: "For now, check out the notes sections for content.",
   },
   toolbox: {
     title: "Toolbox",

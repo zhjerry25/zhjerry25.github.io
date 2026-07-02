@@ -2,6 +2,7 @@
 import { getCollection } from "astro:content";
 import BaseLayout from "../../../layouts/Baselayout.astro";
 import { getReadingTime } from "../../../utils/readingTime";
+import { noteURL } from "../../../utils/notes";
 import { getLocale, type Lang } from "../../../i18n/utils";
 import { en } from "../../../i18n/en";
 import { zh } from "../../../i18n/zh";
@@ -33,7 +34,7 @@ const notes = allNotes.filter((note) =>
   pageTitle={`#${tag}`}
   lang={lang}
   t={t}
-  seoDescription={`${notes.length} notes tagged with #${tag}`}
+  seoDescription={`${t.tags.notesCount(notes.length, tag)}#${tag}`}
   canonicalURL={`/${lang}/tags/${tag}/`}
 >
   <p class="text-neutral-500 mb-6">
@@ -46,8 +47,9 @@ const notes = allNotes.filter((note) =>
       const { short: readingTime } = getReadingTime(note.body || "", lang);
       return (
         <a
-          href={`/${lang}/notes/${note.id}/`}
+          href={noteURL(lang, note.id)}
           class="block rounded-lg border border-neutral-200 p-4 hover:border-neutral-300 hover:bg-neutral-50 transition-colors"
+          data-pagefind-ignore
         >
           <div class="flex items-center gap-2 mb-1">
             <span class="text-xs text-neutral-400">
@@ -64,9 +66,9 @@ const notes = allNotes.filter((note) =>
               </span>
             )}
             <span class="flex gap-1">
-              {note.data.tags.map((t: string) => (
+              {note.data.tags.map((tg: string) => (
                 <span class="text-xs text-pink-600 bg-pink-50 px-1.5 py-0.5 rounded">
-                  {t}
+                  {tg}
                 </span>
               ))}
             </span>

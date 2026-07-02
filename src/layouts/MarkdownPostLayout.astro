@@ -64,7 +64,7 @@ const locale = getLocale(lang);
             <span class="flex flex-wrap gap-1.5">
               {frontmatter.tags.map((tag: string) => (
                 <a
-                  href={`/${lang}/tags/${tag}`}
+                  href={`/${lang}/tags/${tag}/`}
                   class="text-pink-600 hover:text-pink-800 transition-colors"
                 >
                   #{tag}
@@ -82,5 +82,5 @@ const locale = getLocale(lang);
 
   </article>
 
-  {noteId && <GiscusComments term={noteId} lang={lang} />}
+  {noteId && <GiscusComments term={noteId} lang={lang} t={t} />}
 </BaseLayout>

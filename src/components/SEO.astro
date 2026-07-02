@@ -1,5 +1,5 @@
 ---
-import { getLocale, getAlternateLang, type Lang } from "../i18n/utils";
+import { getLocale, type Lang } from "../i18n/utils";
 
 export interface OgImage {
   url: string;
@@ -31,15 +31,19 @@ const {
   siteName = "Astrc",
 } = Astro.props;
 
-const locale = getLocale(lang);
-const otherLang = getAlternateLang(lang);
+// og:locale requires language_TERRITORY (underscore); getLocale's en-US/zh-CN is
+// correct for <html lang> but not for Open Graph.
+const locale = getLocale(lang).replace("-", "_");
 
-// Build the alternate-language URL by replacing the lang prefix
-const baseUrl = "https://zhjerry25.github.io";
-const fullCanonical = new URL(canonicalURL, baseUrl).href;
-const alternateURL = fullCanonical.replace(`/${lang}/`, `/${otherLang}/`);
+// Site origin from Astro.site (single source of truth) with a fallback so the
+// type stays string. Used for canonical / hreflang / JSON-LD URLs.
+const siteOrigin = (Astro.site?.href ?? "https://zhjerry25.github.io").replace(/\/$/, "");
+const fullCanonical = new URL(canonicalURL, siteOrigin).href;
 const enURL = fullCanonical.replace(`/${lang}/`, "/en/");
 const zhURL = fullCanonical.replace(`/${lang}/`, "/zh/");
+// Only emit hreflang when the canonical carries a lang segment; otherwise (e.g.
+// /404) all three alternates would collapse onto the same URL.
+const hasLangSeg = fullCanonical.includes("/en/") || fullCanonical.includes("/zh/");
 
 const pageTitle = `${title} — ${siteName}`;
 ---
@@ -51,10 +55,14 @@ const pageTitle = `${title} — ${siteName}`;
 <!-- Canonical -->
 <link rel="canonical" href={fullCanonical} />
 
-<!-- hreflang -->
-<link rel="alternate" hreflang="en" href={enURL} />
-<link rel="alternate" hreflang="zh" href={zhURL} />
-<link rel="alternate" hreflang="x-default" href={enURL} />
+<!-- hreflang (skip on lang-less pages like /404) -->
+{hasLangSeg && (
+  <>
+    <link rel="alternate" hreflang="en" href={enURL} />
+    <link rel="alternate" hreflang="zh" href={zhURL} />
+    <link rel="alternate" hreflang="x-default" href={enURL} />
+  </>
+)}
 
 <!-- Open Graph -->
 <meta property="og:title" content={title} />
@@ -83,7 +91,7 @@ const pageTitle = `${title} — ${siteName}`;
       headline: title,
       description: description,
       datePublished: pubDate?.toISOString(),
-      keywords: tags.join(", "),
+      ...(tags.length > 0 ? { keywords: tags.join(", ") } : {}),
       url: fullCanonical,
     })} />
   ) : (
@@ -91,7 +99,7 @@ const pageTitle = `${title} — ${siteName}`;
       "@context": "https://schema.org",
       "@type": "WebSite",
       name: siteName,
-      url: baseUrl,
+      url: siteOrigin,
       description: description,
     })} />
   )

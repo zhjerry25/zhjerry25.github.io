@@ -3,6 +3,7 @@ import { getCollection, render, type CollectionEntry } from "astro:content";
 import { getImage } from "astro:assets";
 import MarkdownPostLayout from "../../../../layouts/MarkdownPostLayout.astro";
 import { getReadingTime } from "../../../../utils/readingTime";
+import { noteURL, splitNoteId } from "../../../../utils/notes";
 import { en } from "../../../../i18n/en";
 import { zh } from "../../../../i18n/zh";
 import type { Lang } from "../../../../i18n/utils";
@@ -16,9 +17,7 @@ export async function getStaticPaths() {
   const paths: { params: { lang: string; category: string; slug: string }; props: { t: Translations; post: Note; readingTime: string } }[] = [];
 
   for (const note of allNotes) {
-    const parts = note.id.split("/");
-    const category = parts.length > 1 ? parts[0] : "others";
-    const slug = parts.length > 1 ? parts.slice(1).join("/") : note.id;
+    const { category, slug } = splitNoteId(note.id);
 
     const rtEn = getReadingTime(note.body || "", "en");
     const rtZh = getReadingTime(note.body || "", "zh");
@@ -41,11 +40,15 @@ const { t, post, readingTime } = Astro.props as { t: Translations; post: Note; r
 const { Content } = await render(post);
 
 // Resolve og:image via Astro's native image pipeline. The frontmatter `image`
-// is an ImageMetadata (image() schema); render a single 1200w variant and turn
-// its root-relative src into an absolute URL + intrinsic dimensions for SEO.
+// is an ImageMetadata (image() schema); render a single ~1200w variant and turn
+// its root-relative src into an absolute URL + dimensions for SEO. Cap the
+// requested width to the source's intrinsic width: sharp renders with
+// withoutEnlargement, so an oversized request would report larger dimensions in
+// the metadata than the actually-served (capped) image.
 let ogImage: { url: string; width: number; height: number } | undefined;
 if (post.data.image) {
-  const img = await getImage({ src: post.data.image, width: 1200, layout: "none" });
+  const targetWidth = Math.min(1200, post.data.image.width);
+  const img = await getImage({ src: post.data.image, width: targetWidth, layout: "none" });
   ogImage = {
     url: new URL(img.src, Astro.site).href,
     width: Number(img.attributes.width),
@@ -58,7 +61,7 @@ if (post.data.image) {
   frontmatter={post.data}
   lang={lang}
   t={t}
-  canonicalURL={`/${lang}/notes/${post.id}/`}
+  canonicalURL={noteURL(lang, post.id)}
   noteId={post.id}
   readingTime={readingTime}
   ogImage={ogImage}

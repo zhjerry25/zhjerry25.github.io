@@ -20,6 +20,7 @@ interface Props {
   seoType?: "website" | "article";
   pubDate?: Date;
   tags?: string[];
+  isHome?: boolean;
 }
 
 const {
@@ -34,6 +35,7 @@ const {
   seoType = "website",
   pubDate,
   tags,
+  isHome = false,
 } = Astro.props;
 
 const description = seoDescription || t.seo.homeDescription;
@@ -49,7 +51,7 @@ const description = seoDescription || t.seo.homeDescription;
     <script is:inline data-goatcounter="https://zhjerry25.goatcounter.com/count"
             async src="https://gc.zgo.at/count.js"></script>
     <SEO
-      title={pageTitle === "Home Page" ? t.nav.home : pageTitle}
+      title={pageTitle}
       description={description}
       lang={lang}
       canonicalURL={canonicalURL || Astro.url.pathname}
@@ -70,20 +72,20 @@ const description = seoDescription || t.seo.homeDescription;
       ></div>
 
       <div class="flex min-w-0 flex-1 flex-col">
-        <Header pageTitle={pageTitle} lang={lang} t={t} />
+        <Header pageTitle={pageTitle} lang={lang} t={t} isHome={isHome} />
         <main class="flex-1 px-4 py-6 md:px-8" {...(searchable ? { "data-pagefind-body": "" } : {})}>
           <div class="max-w-3xl mx-auto w-full">
-            {showTitle && pageTitle && pageTitle !== "Home Page" && (
+            {showTitle && pageTitle && !isHome && (
               <h1 class="mb-6 text-2xl font-bold text-gray-900">{pageTitle}</h1>
             )}
             <slot />
           </div>
         </main>
-        <Footer lang={lang} t={t} />
+        <Footer t={t} />
       </div>
     </div>
 
-    <SearchModal lang={lang} t={t} />
+    <SearchModal t={t} />
 
     <script>
       import "../scripts/menu.js";

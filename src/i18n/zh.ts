@@ -66,7 +66,7 @@ export const zh = {
   },
   recents: {
     title: "最近更新",
-    description: "所有分类的笔记。",
+    description: "所有分类中最近的 5 篇笔记。",
     empty: "暂无笔记，请稍后再来！",
   },
   notes: {

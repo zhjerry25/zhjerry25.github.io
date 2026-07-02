@@ -1,10 +1,9 @@
 ---
 interface Props {
   path: string;
-  mode?: "card" | "full";
 }
 
-const { path, mode = "card" } = Astro.props;
+const { path } = Astro.props;
 const goatcounter = "zhjerry25";
 const apiEn = `https://${goatcounter}.goatcounter.com/counter/en/notes/${encodeURIComponent(path)}.json`;
 const apiZh = `https://${goatcounter}.goatcounter.com/counter/zh/notes/${encodeURIComponent(path)}.json`;
@@ -14,7 +13,6 @@ const apiZh = `https://${goatcounter}.goatcounter.com/counter/zh/notes/${encodeU
   class="view-counter"
   data-api-en={apiEn}
   data-api-zh={apiZh}
-  data-mode={mode}
 >
   <svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
     <path d="M128 32l32 0c17.7 0 32 14.3 32 32l0 32-96 0 0-32c0-17.7 14.3-32 32-32zm64 96l0 320c0 17.7-14.3 32-32 32L32 480c-17.7 0-32-14.3-32-32l0-59.1c0-34.6 9.4-68.6 27.2-98.3 13.7-22.8 22.5-48.2 25.8-74.6L60.5 156c2-16 15.6-28 31.8-28l99.8 0zm227.8 0c16.1 0 29.8 12 31.8 28L459 216c3.3 26.4 12.1 51.8 25.8 74.6 17.8 29.7 27.2 63.7 27.2 98.3l0 59.1c0 17.7-14.3 32-32 32l-128 0c-17.7 0-32-14.3-32-32l0-320 99.8 0zM320 64c0-17.7 14.3-32 32-32l32 0c17.7 0 32 14.3 32 32l0 32-96 0 0-32zm-32 64l0 160-64 0 0-160 64 0z"/>
@@ -28,7 +26,6 @@ const apiZh = `https://${goatcounter}.goatcounter.com/counter/zh/notes/${encodeU
       const apiEn = el.dataset.apiEn;
       const apiZh = el.dataset.apiZh;
       if (!apiEn || !apiZh) return;
-      const mode = el.dataset.mode || "card";
 
       Promise.all([
         fetch(apiEn).then((r) => r.json()).catch(() => ({ count: "0" })),
@@ -38,11 +35,7 @@ const apiZh = `https://${goatcounter}.goatcounter.com/counter/zh/notes/${encodeU
           const total = (parseInt(en.count, 10) || 0) + (parseInt(zh.count, 10) || 0);
           const textEl = el.querySelector(".view-count-text");
           if (textEl) {
-            if (mode === "card") {
-              textEl.textContent = `${total}`;
-            } else {
-              textEl.textContent = `${total} views`;
-            }
+            textEl.textContent = `${total}`;
           }
         })
         .catch(() => {
@@ -69,11 +62,5 @@ const apiZh = `https://${goatcounter}.goatcounter.com/counter/zh/notes/${encodeU
     color: #9ca3af;
     white-space: nowrap;
     flex-shrink: 0;
-  }
-  .view-counter[data-mode="full"] {
-    font-size: 0.875rem;
-    color: #6b7280;
-    margin-top: 2rem;
-    padding-top: 0;
   }
 </style>

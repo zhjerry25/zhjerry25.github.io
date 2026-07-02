@@ -3,17 +3,23 @@ import { getCollection } from "astro:content";
 import BaseLayout from "../../../../layouts/Baselayout.astro";
 import BlogPost from "../../../../components/BlogPost.astro";
 import { getReadingTime } from "../../../../utils/readingTime";
+import { noteURL, splitNoteId } from "../../../../utils/notes";
 import { getLocale, type Lang } from "../../../../i18n/utils";
 import { en } from "../../../../i18n/en";
 import { zh } from "../../../../i18n/zh";
 import type { Translations } from "../../../../i18n/types";
 
 export async function getStaticPaths() {
-  // All known category keys — must match src/notes/ directory names
-  const KNOWN_CATEGORIES = ["chem", "cs", "mathphy", "others"] as const;
+  // Always generate pages for the categories linked in the sidebar/home, plus
+  // any new category that has notes (so a new notes/<dir>/ is never a 404).
+  // Categories without notes render the empty state.
+  const NAV_CATEGORIES = ["chem", "cs", "mathphy", "others"] as const;
+  const allNotes = await getCollection("notes");
+  const derived = allNotes.map((n) => splitNoteId(n.id).category);
+  const categories = [...new Set([...NAV_CATEGORIES, ...derived])];
 
   const paths: { params: { lang: string; category: string }; props: { t: Translations } }[] = [];
-  for (const cat of KNOWN_CATEGORIES) {
+  for (const cat of categories) {
     paths.push({ params: { lang: "en", category: cat }, props: { t: en } });
     paths.push({ params: { lang: "zh", category: cat }, props: { t: zh } });
   }
@@ -26,7 +32,7 @@ const locale = getLocale(lang);
 
 const allNotes = await getCollection("notes");
 const posts = allNotes
-  .filter((note) => (note.id.includes("/") ? note.id.split("/")[0] : "others") === category)
+  .filter((note) => splitNoteId(note.id).category === category)
   .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
 
 const formatDate = (d: Date) =>
@@ -52,7 +58,7 @@ const catMeta = t.categoryMeta[category as keyof typeof t.categoryMeta];
         return (
           <BlogPost
             title={note.data.title}
-            url={`/${lang}/notes/${note.id}/`}
+            url={noteURL(lang, note.id)}
             date={formatDate(note.data.pubDate)}
             tags={note.data.tags}
             description={note.data.description}
@@ -63,6 +69,6 @@ const catMeta = t.categoryMeta[category as keyof typeof t.categoryMeta];
       })}
     </div>
   ) : (
-    <p class="text-neutral-400 text-sm">{t.recents.empty}</p>
+    <p class="text-neutral-400 text-sm">{t.notes.empty}</p>
   )}
 </BaseLayout>

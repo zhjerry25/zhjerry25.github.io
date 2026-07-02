@@ -34,7 +34,7 @@ const tags = [...new Set(allNotes.map((note) => note.data.tags).flat())].sort();
   <div class="flex flex-wrap gap-2">
     {tags.map((tag) => (
       <a
-        href={`/${lang}/tags/${tag}`}
+        href={`/${lang}/tags/${tag}/`}
         class="inline-block rounded-full bg-pink-50 px-3 py-1.5 text-sm text-pink-700 hover:bg-pink-100 transition-colors"
       >
         #{tag}

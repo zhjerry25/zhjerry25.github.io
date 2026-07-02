@@ -1,13 +1,11 @@
 ---
-import type { Lang } from "../i18n/utils";
 import type { Translations } from "../i18n/types";
 
 interface Props {
-  lang: Lang;
   t: Translations;
 }
 
-const { lang: _lang, t } = Astro.props;
+const { t } = Astro.props;
 ---
 
 <footer class="border-t border-neutral-200 mt-12">

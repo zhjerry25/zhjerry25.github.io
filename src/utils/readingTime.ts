@@ -3,7 +3,7 @@ export interface ReadingTimeResult {
   minutes: number;
   /** Short form: "3 min" (en) or "3 分钟" (zh) */
   short: string;
-  /** Full form: "3 min read" (en) or "阅读 3 分钟" (zh) */
+  /** Full form: "3 min" (en) or "阅读 3 分钟" (zh) */
   full: string;
 }
 
@@ -68,8 +68,8 @@ export function getReadingTime(
   if (lang === "zh") {
     return {
       minutes,
-      short: `${minutes} min`,
-      full: `${minutes} min`,
+      short: `${minutes} 分钟`,
+      full: `阅读 ${minutes} 分钟`,
     };
   }
 

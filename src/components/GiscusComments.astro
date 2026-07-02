@@ -1,16 +1,19 @@
 ---
+import type { Translations } from "../i18n/types";
+
 interface Props {
   term: string;
   lang: string;
+  t: Translations;
 }
 
-const { term, lang } = Astro.props;
+const { term, lang, t } = Astro.props;
 const giscusLang = lang === "zh" ? "zh-CN" : "en";
 ---
 
 <div class="mt-12 pt-8 border-t border-neutral-200">
   <h2 class="text-lg font-semibold text-gray-900 mb-4">
-    {lang === "zh" ? "评论" : "Comments"}
+    {t.comments}
   </h2>
   <div class="giscus"></div>
 </div>
