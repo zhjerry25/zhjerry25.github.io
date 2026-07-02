@@ -1,9 +1,11 @@
 ---
+import { Image } from "astro:assets";
 import SidebarItem from "./SidebarItem.astro";
 import SidebarSection from "./SidebarSection.astro";
 import Social from "./Social.astro";
 import type { Lang } from "../i18n/utils";
 import type { Translations } from "../i18n/types";
+import avatarImage from "../assets/images/avatar.png";
 
 interface Props {
   lang: Lang;
@@ -28,7 +30,7 @@ const isActive = (path: string) => {
 >
   <!-- Logo -->
   <div class="flex items-center gap-2.5 px-4 py-4">
-    <span class="h-6 w-6 shrink-0 rounded bg-neutral-300"></span>
+    <Image src={avatarImage} alt="Jerry" class="h-6 w-6 shrink-0 rounded-full object-cover" />
     <span class="text-[17px] font-semibold text-neutral-900">Jerry</span>
   </div>
 

@@ -9,6 +9,10 @@ import sitemap from "@astrojs/sitemap";
 
 import tailwindcss from "@tailwindcss/vite";
 
+import { unified } from "@astrojs/markdown-remark";
+
+import rehypeImageOptimizer from "./src/plugins/rehype-image-optimizer";
+
 // https://astro.build/config
 export default defineConfig({
   site: "https://zhjerry25.github.io",
@@ -38,6 +42,10 @@ export default defineConfig({
       },
     }),
   ],
+
+  markdown: unified({
+    rehypePlugins: [rehypeImageOptimizer],
+  }),
 
   vite: {
     plugins: [tailwindcss()],

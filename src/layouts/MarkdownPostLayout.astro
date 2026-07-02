@@ -10,15 +10,17 @@ interface Props {
     pubDate: Date;
     tags?: string[];
     description?: string;
+    image?: string;
   };
   lang: Lang;
   t: Translations;
   canonicalURL: string;
   noteId?: string;
   readingTime?: string;
+  ogImage?: string;
 }
 
-const { frontmatter, lang, t, canonicalURL, noteId, readingTime } = Astro.props;
+const { frontmatter, lang, t, canonicalURL, noteId, readingTime, ogImage } = Astro.props;
 const locale = getLocale(lang);
 ---
 
@@ -29,6 +31,7 @@ const locale = getLocale(lang);
   t={t}
   seoDescription={frontmatter.description || frontmatter.title}
   canonicalURL={canonicalURL}
+  ogImage={ogImage}
   seoType="article"
   pubDate={frontmatter.pubDate}
   tags={frontmatter.tags}

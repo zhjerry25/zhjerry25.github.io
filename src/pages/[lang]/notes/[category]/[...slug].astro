@@ -45,6 +45,7 @@ const { Content } = await render(post);
   canonicalURL={`/${lang}/notes/${post.id}/`}
   noteId={post.id}
   readingTime={readingTime}
+  ogImage={post.data.image}
 >
   <Content />
 </MarkdownPostLayout>

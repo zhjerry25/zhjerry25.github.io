@@ -15,6 +15,7 @@ const notes = defineCollection({
     pubDate: z.date(),
     description: z.string().optional(),
     tags: z.array(z.string()).optional().default([]),
+    image: z.string().optional(), // relative path to co-located image, e.g. "./diagram.png"
   }),
 });
 
