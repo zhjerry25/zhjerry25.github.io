@@ -48,7 +48,7 @@ const description = seoDescription || t.seo.homeDescription;
     <script is:inline data-goatcounter="https://zhjerry25.goatcounter.com/count"
             async src="//gc.zgo.at/count.js"></script>
     <SEO
-      title={pageTitle === "Home Page" ? t.site.name : pageTitle}
+      title={pageTitle === "Home Page" ? t.nav.home : pageTitle}
       description={description}
       lang={lang}
       canonicalURL={canonicalURL || Astro.url.pathname}
