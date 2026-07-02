@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://zhjerry25.github.io/sitemap-index.xml

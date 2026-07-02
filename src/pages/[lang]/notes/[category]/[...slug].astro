@@ -1,5 +1,5 @@
 ---
-import { getCollection, render } from "astro:content";
+import { getCollection, render, type CollectionEntry } from "astro:content";
 import MarkdownPostLayout from "../../../../layouts/MarkdownPostLayout.astro";
 import { getReadingTime } from "../../../../utils/readingTime";
 import { en } from "../../../../i18n/en";
@@ -7,10 +7,12 @@ import { zh } from "../../../../i18n/zh";
 import type { Lang } from "../../../../i18n/utils";
 import type { Translations } from "../../../../i18n/types";
 
+type Note = CollectionEntry<"notes">;
+
 export async function getStaticPaths() {
   const allNotes = await getCollection("notes");
 
-  const paths: { params: { lang: string; category: string; slug: string }; props: { t: Translations; post: (typeof allNotes)[number]; readingTime: string } }[] = [];
+  const paths: { params: { lang: string; category: string; slug: string }; props: { t: Translations; post: Note; readingTime: string } }[] = [];
 
   for (const note of allNotes) {
     const parts = note.id.split("/");
@@ -34,7 +36,7 @@ export async function getStaticPaths() {
 }
 
 const { lang } = Astro.params as { lang: Lang };
-const { t, post, readingTime } = Astro.props as { t: Translations; post: any; readingTime?: string };
+const { t, post, readingTime } = Astro.props as { t: Translations; post: Note; readingTime?: string };
 const { Content } = await render(post);
 ---
 

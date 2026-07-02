@@ -1,7 +1,4 @@
 // @ts-check
-import { EventEmitter } from "node:events";
-EventEmitter.defaultMaxListeners = 20;
-
 import { defineConfig } from "astro/config";
 
 import preact from "@astrojs/preact";

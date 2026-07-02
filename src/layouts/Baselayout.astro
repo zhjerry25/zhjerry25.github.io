@@ -43,10 +43,11 @@ const description = seoDescription || t.seo.homeDescription;
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate" type="application/rss+xml" title={`${t.site.name} (${lang === "zh" ? "中文" : "English"})`} href={`/${lang}/rss.xml`} />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
     <script is:inline data-goatcounter="https://zhjerry25.goatcounter.com/count"
-            async src="//gc.zgo.at/count.js"></script>
+            async src="https://gc.zgo.at/count.js"></script>
     <SEO
       title={pageTitle === "Home Page" ? t.nav.home : pageTitle}
       description={description}

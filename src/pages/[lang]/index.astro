@@ -97,7 +97,7 @@ const categoryKeys = ["chem", "cs", "mathphy", "others", "resources", "toolbox"]
       {categoryKeys.map((key) => {
         const cat = t.categoryMeta[key];
         const href = key === "resources" ? `/${lang}/resources/`
-          : key === "toolbox" ? `/${lang}/Toolbox/`
+          : key === "toolbox" ? `/${lang}/toolbox/`
           : `/${lang}/notes/${key}/`;
         return (
           <a
