@@ -31,3 +31,6 @@ CONTEXT.md
 
 # obsidian files
 src/notes/.obsidian/
+
+# draft file
+draft.md
