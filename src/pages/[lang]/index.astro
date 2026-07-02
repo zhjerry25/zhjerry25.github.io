@@ -9,6 +9,8 @@ import { getLocale, type Lang } from "../../i18n/utils";
 import { en } from "../../i18n/en";
 import { zh } from "../../i18n/zh";
 import type { Translations } from "../../i18n/types";
+import { Image } from "astro:assets";
+import heroImage from "../../assets/images/background.jpg";
 
 export function getStaticPaths() {
   return [
@@ -49,6 +51,15 @@ const categoryKeys = ["chem", "cs", "mathphy", "others", "resources", "toolbox"]
       {t.home.tagline}
     </p>
   </section>
+
+  <div class="mb-12">
+    <Image
+      src={heroImage}
+      alt=""
+      loading="eager"
+      class="rounded-lg shadow-sm mx-auto block w-full"
+    />
+  </div>
 
   <!-- Section 2: Recent Updates -->
   <section class="mb-12">
