@@ -1,4 +1,5 @@
 ## Astrc
+
 Welcome to the repository ^_^
 
 <p>
@@ -7,15 +8,14 @@ Welcome to the repository ^_^
   <a href="https://astro.build"><img src="https://img.shields.io/badge/built%20with-Astro%207-%23BC52EE" alt="Astro"></a>
 </p>
 
-### License · 许可证
+### License
 
-Unless otherwise noted, all content on this site is licensed under **CC BY-SA 4.0**. You are free to copy, distribute, display, and remix, as long as you give appropriate credit and share derivative works under the same license.
+Unless otherwise noted, all content on this site is licensed under CC BY-SA 4.0. You are free to copy, distribute, display, and remix, as long as you give appropriate credit and share derivative works under the same license.
 
-除额外说明外，本网站所有内容遵循 **CC BY-SA 4.0** 协议。你可以自由复制、分发、展示和演绎，只需给予适当署名并在相同许可证下分享衍生作品。
+除额外说明外，本网站所有内容遵循 CC BY-SA 4.0 协议。你可以自由复制、分发、展示和演绎，只需给予适当署名并在相同许可证下分享衍生作品。
 
+### Support
 
-### Support · 支持
-
-If you find this project interesting or useful, consider dropping a star — your support means the world to me ♪( ´▽｀)
+If you find this interesting, consider dropping a star — your support means the world to me ♪( ´▽｀)
 
 如果觉得不错，欢迎点个star，你的支持是对我莫大的鼓励 ♪( ´▽｀)
