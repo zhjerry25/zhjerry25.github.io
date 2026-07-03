@@ -23,11 +23,11 @@ export const en = {
   categoryMeta: {
     chem: {
       emoji: "🧪",
-      desc: "Notes on chemical principles, reactions, and lab work.",
+      desc: "Various chemistry content — notes, papers, and more.",
     },
     cs: {
       emoji: "💻",
-      desc: "Algorithms, systems, and software engineering notes.",
+      desc: "Computer science explorations.",
     },
     mathphy: {
       emoji: "📐",
@@ -39,11 +39,11 @@ export const en = {
     },
     resources: {
       emoji: "📚",
-      desc: "Curated links, references, and learning materials.",
+      desc: "A collection of digital materials, references, and links.",
     },
     toolbox: {
       emoji: "🧰",
-      desc: "Tools, utilities, and workflows I use.",
+      desc: "Tool recommendations and utilities coming to the site.",
     },
   },
   home: {
@@ -69,9 +69,9 @@ export const en = {
     contactTitle: "You can also find me here",
     contactItems: [
       { label: "My GitHub", url: "https://github.com/zhjerry25", note: "check out my other projects too" },
-      { label: "My Bilibili", url: "#" },
-      { label: "My QQ", url: "#" },
-      { label: "My Zhihu", url: "#" },
+      { label: "My Bilibili", url: "https://space.bilibili.com/3546913020316468" },
+      { label: "My QQ", url: "https://user.qzone.qq.com/2640514109" },
+      { label: "My Zhihu", url: "https://www.zhihu.com/people/38-94-76-75" },
     ],
     contactSidebarNote:
       "Follow me on other platforms too! (when I get around to it)<br>You can also jump to them anytime via the icons at the <strong>bottom of the sidebar</strong>.",
@@ -93,7 +93,7 @@ export const en = {
   },
   recents: {
     title: "Recents",
-    description: "Latest 5 notes across all categories.",
+    description: "Latest notes across all categories.",
     empty: "No notes yet. Check back soon!",
   },
   notes: {
@@ -111,14 +111,14 @@ export const en = {
   resources: {
     title: "Resources",
     description:
-      "Curated links, references, and learning materials I've found useful.",
+      "A collection of digital materials, references, and links.",
     wip1:
       "This page is a work in progress. Resources will be organized by topic soon.",
     wip2: "For now, check out the notes sections for content.",
   },
   toolbox: {
     title: "Toolbox",
-    description: "Tools, utilities, and workflows I use regularly.",
+    description: "Tool recommendations and utilities coming to the site.",
     wip: "This page is a work in progress. Tools and utilities will be listed here soon.",
   },
   footer: {
@@ -131,14 +131,14 @@ export const en = {
   },
   seo: {
     homeDescription:
-      "A personal knowledge base covering chemistry, computer science, mathematics, and physics. Notes, resources, and tools — loosely organized, constantly evolving.",
+      "Astrc is the personal knowledge base of a high school student, covering chemistry, computer science, math & physics, and whatever else catches my interest ^_^ Notes, resources, and tools.",
     aboutDescription: "About me and this knowledge base.",
     recentsDescription: "All recent notes across all categories.",
     notesDescription: "Browse all notes organized by category and tags.",
     tagsDescription: "Browse all tags used across notes.",
     resourcesDescription:
-      "Curated links, references, and learning materials.",
-    toolboxDescription: "Tools, utilities, and workflows I use regularly.",
+      "A collection of digital materials, references, and links.",
+    toolboxDescription: "Tool recommendations and utilities coming to the site.",
   },
   rss: {
     title: "Astrc Notes",

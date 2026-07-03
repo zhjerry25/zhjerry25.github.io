@@ -23,27 +23,27 @@ export const zh = {
   categoryMeta: {
     chem: {
       emoji: "🧪",
-      desc: "化学原理、反应和实验笔记。",
+      desc: "各种化学内容，包括但不限于学科笔记和论文分享",
     },
     cs: {
       emoji: "💻",
-      desc: "算法、系统和软件工程笔记。",
+      desc: "业余计算机的学习",
     },
     mathphy: {
       emoji: "📐",
-      desc: "数学方法和物理概念。",
+      desc: "数学方法和物理概念",
     },
     others: {
       emoji: "📝",
-      desc: "各种杂项笔记和想法。",
+      desc: "各种杂项笔记和想法",
     },
     resources: {
       emoji: "📚",
-      desc: "精选链接、参考资料和学习材料。",
+      desc: "存放收集的电子材料、参考资料和链接",
     },
     toolbox: {
       emoji: "🧰",
-      desc: "我常用的工具、实用程序和工作流。",
+      desc: "工具分享和网站未来内嵌的工具",
     },
   },
   home: {
@@ -69,9 +69,9 @@ export const zh = {
     contactTitle: "除此之外，以下是我的一些联系方式",
     contactItems: [
       { label: "我的Github主页", url: "https://github.com/zhjerry25", note: "欢迎关注我的其它项目" },
-      { label: "我的Bilibili主页", url: "#" },
-      { label: "我的QQ账号", url: "#" },
-      { label: "我的知乎首页", url: "#" },
+      { label: "我的Bilibili主页", url: "https://space.bilibili.com/3546913020316468" },
+      { label: "我的QQ账号", url: "https://user.qzone.qq.com/2640514109" },
+      { label: "我的知乎首页", url: "https://www.zhihu.com/people/38-94-76-75" },
     ],
     contactSidebarNote:
       "欢迎支持我在其它平台的内容！（如果有的话）<br>你也可以随时通过访问网页<strong>侧栏下方</strong>的图标跳转",
@@ -93,31 +93,31 @@ export const zh = {
   },
   recents: {
     title: "最近更新",
-    description: "所有分类中最近的 5 篇笔记。",
+    description: "所有分类中最近的笔记",
     empty: "暂无笔记，请稍后再来！",
   },
   notes: {
     title: "笔记",
-    description: "所有分类的笔记。",
+    description: "所有分类的笔记",
     empty: "暂无笔记，请稍后再来！",
   },
   tags: {
     title: "标签",
     tagCount: (count: number) =>
-      `所有笔记中共有 ${count} 个标签。`,
+      `所有笔记中共有 ${count} 个标签`,
     notesCount: (count: number, _tag: string) =>
-      `共有 ${count} 篇笔记带有此标签。`,
+      `共有 ${count} 篇笔记带有此标签`,
   },
   resources: {
     title: "资源",
-    description: "我收集的精选链接、参考资料和学习材料。",
-    wip1: "此页面正在建设中，资源将很快按主题整理。",
-    wip2: "目前可以先查看笔记部分的内容。",
+    description: "存放收集的电子材料、参考资料和链接",
+    wip1: "此页面正在建设中，资源将很快按主题整理",
+    wip2: "目前可以先查看笔记部分的内容",
   },
   toolbox: {
     title: "工具箱",
-    description: "我日常使用的工具、实用程序和工作流。",
-    wip: "此页面正在建设中，工具和实用程序将很快列在这里。",
+    description: "工具分享和网站未来内嵌的工具",
+    wip: "此页面正在建设中，工具和实用程序未来会列在这里",
   },
   footer: {
     copyright:
@@ -129,13 +129,13 @@ export const zh = {
     breadcrumbHome: "首页",
   },
   seo: {
-    homeDescription: "一个涵盖化学、计算机科学、数学和物理的个人知识库。笔记、资源和工具——松散整理，持续更新。",
-    aboutDescription: "关于我和这个知识库。",
-    recentsDescription: "所有分类的最近笔记。",
-    notesDescription: "按分类和标签浏览所有笔记。",
-    tagsDescription: "浏览笔记中使用的所有标签。",
-    resourcesDescription: "精选链接、参考资料和学习材料。",
-    toolboxDescription: "我日常使用的工具、实用程序和工作流。",
+    homeDescription: "本站名为Astrc，是一个高中生的个人知识库，主要更新化学、计算机、数理和其它我感兴趣的领域的内容 ^_^ 整理笔记、资源和工具，欢迎关注",
+    aboutDescription: "关于我和这个知识库",
+    recentsDescription: "所有分类的最近笔记",
+    notesDescription: "按分类和标签浏览所有笔记",
+    tagsDescription: "浏览笔记中使用的所有标签",
+    resourcesDescription: "存放收集的电子材料、参考资料和链接",
+    toolboxDescription: "工具分享和网站未来内嵌的工具",
   },
   rss: {
     title: "Astrc 笔记",

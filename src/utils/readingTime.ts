@@ -1,9 +1,6 @@
 export interface ReadingTimeResult {
-  /** Integer minutes, always >= 1 */
   minutes: number;
-  /** Short form: "3 min" (en) or "3 分钟" (zh) */
   short: string;
-  /** Full form: "3 min" (en) or "阅读 3 分钟" (zh) */
   full: string;
 }
 
