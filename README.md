@@ -1,6 +1,6 @@
 ## Aether-archive
 
-Welcome to the repository ^_^
+Welcome to the repository
 
 <p>
   <a href="https://zhjerry25.github.io"><img src="https://img.shields.io/badge/site-zhjerry25.github.io-blue" alt="site"></a>
@@ -16,6 +16,6 @@ Unless otherwise noted, all content on this site is licensed under CC BY-SA 4.0.
 
 ### Support
 
-If you find this interesting, consider dropping a star — your support means the world to me ♪( ´▽｀)
+If you find this interesting, consider dropping a star — your support means the world to me
 
-如果觉得不错，欢迎点个star，你的支持是对我莫大的鼓励 ♪( ´▽｀)
+如果觉得不错，欢迎点个star，你的支持是对我莫大的鼓励
