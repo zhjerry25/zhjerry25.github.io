@@ -9,8 +9,8 @@ const { noteId } = Astro.props;
 const goatcounter = "zhjerry25";
 const pathEn = noteURL("en", noteId);
 const pathZh = noteURL("zh", noteId);
-const apiEn = `https://${goatcounter}.goatcounter.com/counter//${pathEn.replace(/^\/|\/$/g, "")}.json`;
-const apiZh = `https://${goatcounter}.goatcounter.com/counter//${pathZh.replace(/^\/|\/$/g, "")}.json`;
+const apiEn = `https://${goatcounter}.goatcounter.com/counter//${pathEn.replace(/^\/|\/$/g, "")}.html`;
+const apiZh = `https://${goatcounter}.goatcounter.com/counter//${pathZh.replace(/^\/|\/$/g, "")}.html`;
 ---
 
 <span
@@ -32,11 +32,16 @@ const apiZh = `https://${goatcounter}.goatcounter.com/counter//${pathZh.replace(
       if (!apiEn || !apiZh) return;
 
       Promise.all([
-        fetch(apiEn).then((r) => r.json()).catch(() => ({ count: "0" })),
-        fetch(apiZh).then((r) => r.json()).catch(() => ({ count: "0" })),
+        fetch(apiEn).then((r) => r.text()).catch(() => ""),
+        fetch(apiZh).then((r) => r.text()).catch(() => ""),
       ])
-        .then(([en, zh]) => {
-          const total = (parseInt(en.count, 10) || 0) + (parseInt(zh.count, 10) || 0);
+        .then(([htmlEn, htmlZh]) => {
+          const parseCount = (html) => {
+            const doc = new DOMParser().parseFromString(html, "text/html");
+            const el = doc.querySelector("#gcvc-views");
+            return el ? (parseInt(el.textContent, 10) || 0) : 0;
+          };
+          const total = parseCount(htmlEn) + parseCount(htmlZh);
           const textEl = el.querySelector(".view-count-text");
           if (textEl) {
             textEl.textContent = `${total}`;
