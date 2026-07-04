@@ -9,58 +9,35 @@ const { noteId } = Astro.props;
 const goatcounter = "zhjerry25";
 const pathEn = noteURL("en", noteId);
 const pathZh = noteURL("zh", noteId);
-const apiEn = `https://${goatcounter}.goatcounter.com/counter//${pathEn.replace(/^\/|\/$/g, "")}.html`;
-const apiZh = `https://${goatcounter}.goatcounter.com/counter//${pathZh.replace(/^\/|\/$/g, "")}.html`;
+
+async function fetchViewCount(path: string): Promise<number> {
+  try {
+    const clean = path.replace(/^\/|\/$/g, "");
+    const url = `https://${goatcounter}.goatcounter.com/counter//${clean}.html`;
+    const res = await fetch(url);
+    if (!res.ok) return 0;
+    const html = await res.text();
+    const m = html.match(/id="gcvc-views"[^>]*>([\d,]+)</);
+    if (m) return parseInt(m[1].replace(/,/g, ""), 10) || 0;
+    return 0;
+  } catch {
+    return 0;
+  }
+}
+
+const [countEn, countZh] = await Promise.all([
+  fetchViewCount(pathEn),
+  fetchViewCount(pathZh),
+]);
+const total = countEn + countZh;
 ---
 
-<span
-  class="view-counter"
-  data-api-en={apiEn}
-  data-api-zh={apiZh}
->
+<span class="view-counter">
   <svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
     <path d="M128 32l32 0c17.7 0 32 14.3 32 32l0 32-96 0 0-32c0-17.7 14.3-32 32-32zm64 96l0 320c0 17.7-14.3 32-32 32L32 480c-17.7 0-32-14.3-32-32l0-59.1c0-34.6 9.4-68.6 27.2-98.3 13.7-22.8 22.5-48.2 25.8-74.6L60.5 156c2-16 15.6-28 31.8-28l99.8 0zm227.8 0c16.1 0 29.8 12 31.8 28L459 216c3.3 26.4 12.1 51.8 25.8 74.6 17.8 29.7 27.2 63.7 27.2 98.3l0 59.1c0 17.7-14.3 32-32 32l-128 0c-17.7 0-32-14.3-32-32l0-320 99.8 0zM320 64c0-17.7 14.3-32 32-32l32 0c17.7 0 32 14.3 32 32l0 32-96 0 0-32zm-32 64l0 160-64 0 0-160 64 0z"/>
   </svg>
-  <span class="view-count-text">&mdash;</span>
+  <span class="view-count-text">{total}</span>
 </span>
-
-<script is:inline>
-  function loadViewCounts() {
-    document.querySelectorAll(".view-counter").forEach((el) => {
-      const apiEn = el.dataset.apiEn;
-      const apiZh = el.dataset.apiZh;
-      if (!apiEn || !apiZh) return;
-
-      Promise.all([
-        fetch(apiEn).then((r) => r.text()).catch(() => ""),
-        fetch(apiZh).then((r) => r.text()).catch(() => ""),
-      ])
-        .then(([htmlEn, htmlZh]) => {
-          const parseCount = (html) => {
-            const doc = new DOMParser().parseFromString(html, "text/html");
-            const el = doc.querySelector("#gcvc-views");
-            return el ? (parseInt(el.textContent, 10) || 0) : 0;
-          };
-          const total = parseCount(htmlEn) + parseCount(htmlZh);
-          const textEl = el.querySelector(".view-count-text");
-          if (textEl) {
-            textEl.textContent = `${total}`;
-          }
-        })
-        .catch(() => {
-          const textEl = el.querySelector(".view-count-text");
-          if (textEl) textEl.textContent = "";
-        });
-    });
-  }
-
-  // Run on load
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", loadViewCounts);
-  } else {
-    loadViewCounts();
-  }
-</script>
 
 <style is:global>
   .view-counter {
