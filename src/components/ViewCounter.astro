@@ -1,12 +1,16 @@
 ---
+import { noteURL } from "../utils/notes";
+
 interface Props {
-  path: string;
+  noteId: string;
 }
 
-const { path } = Astro.props;
+const { noteId } = Astro.props;
 const goatcounter = "zhjerry25";
-const apiEn = `https://${goatcounter}.goatcounter.com/counter//en/notes/${encodeURI(path)}.json`;
-const apiZh = `https://${goatcounter}.goatcounter.com/counter//zh/notes/${encodeURI(path)}.json`;
+const pathEn = noteURL("en", noteId);
+const pathZh = noteURL("zh", noteId);
+const apiEn = `https://${goatcounter}.goatcounter.com/counter/${pathEn}.json`;
+const apiZh = `https://${goatcounter}.goatcounter.com/counter/${pathZh}.json`;
 ---
 
 <span

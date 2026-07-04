@@ -37,7 +37,7 @@ const { title, url, date, tags, label, description, noteId, readingTime } = Astr
           {readingTime}
         </span>
       )}
-      {noteId && <ViewCounter path={noteId} />}
+      {noteId && <ViewCounter noteId={noteId} />}
     </div>
   </div>
   {description && (
