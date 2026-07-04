@@ -2,7 +2,7 @@ import type { Translations } from "./types";
 
 export const en = {
   site: {
-    name: "Astrc",
+    name: "Aether",
     description: "Personal knowledge base",
   },
   nav: {
@@ -47,9 +47,9 @@ export const en = {
     },
   },
   home: {
-    hero: "Astrc",
+    hero: "Aether-archive",
     tagline:
-      "Astrc is the personal knowledge base of a high school student, covering chemistry, computer science, math & physics, and whatever else catches my interest ^_^ Notes, resources, and tools.",
+      "Aether-ar is the personal knowledge base of a high school student, covering chemistry, computer science, math & physics, and whatever else catches my interest ^_^ Notes, resources, and tools.",
     recentUpdates: "Recent Updates",
     noNotes: "No notes yet. Check back soon!",
     viewAll: "View all notes →",
@@ -131,7 +131,7 @@ export const en = {
   },
   seo: {
     homeDescription:
-      "Astrc is the personal knowledge base of a high school student, covering chemistry, computer science, math & physics, and whatever else catches my interest ^_^ Notes, resources, and tools.",
+      "Aether-ar is the personal knowledge base of a high school student, covering chemistry, computer science, math & physics, and whatever else catches my interest ^_^ Notes, resources, and tools.",
     aboutDescription: "About me and this knowledge base.",
     recentsDescription: "All recent notes across all categories.",
     notesDescription: "Browse all notes organized by category and tags.",
@@ -141,7 +141,7 @@ export const en = {
     toolboxDescription: "Tool recommendations and utilities coming to the site.",
   },
   rss: {
-    title: "Astrc Notes",
+    title: "Aehter-ar Notes",
     description: "Personal knowledge base",
   },
   search: {

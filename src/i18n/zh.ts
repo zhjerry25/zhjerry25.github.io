@@ -2,7 +2,7 @@ import type { Translations } from "./types";
 
 export const zh = {
   site: {
-    name: "Astrc",
+    name: "Aether",
     description: "个人知识库",
   },
   nav: {
@@ -47,9 +47,9 @@ export const zh = {
     },
   },
   home: {
-    hero: "Astrc",
+    hero: "Aether-archive",
     tagline:
-      "本站名为Astrc，是一个高中生的个人知识库，主要更新化学、计算机、数理和其它我感兴趣的领域的内容 ^_^ 整理笔记、资源和工具，欢迎关注",
+      "本站Aether-ar是一个高中生的个人知识库，主要更新化学、计算机、数理和其它我感兴趣的领域的内容 ^_^ 整理笔记、资源和工具，欢迎关注",
     recentUpdates: "最近更新",
     noNotes: "暂无笔记，请稍后再来！",
     viewAll: "查看所有笔记 →",
@@ -129,7 +129,7 @@ export const zh = {
     breadcrumbHome: "首页",
   },
   seo: {
-    homeDescription: "本站名为Astrc，是一个高中生的个人知识库，主要更新化学、计算机、数理和其它我感兴趣的领域的内容 ^_^ 整理笔记、资源和工具，欢迎关注",
+    homeDescription: "本站Aether-ar一个高中生的个人知识库，主要更新化学、计算机、数理和其它我感兴趣的领域的内容 ^_^ 整理笔记、资源和工具，欢迎关注",
     aboutDescription: "关于我和这个知识库",
     recentsDescription: "所有分类的最近笔记",
     notesDescription: "按分类和标签浏览所有笔记",
@@ -138,7 +138,7 @@ export const zh = {
     toolboxDescription: "工具分享和网站未来内嵌的工具",
   },
   rss: {
-    title: "Astrc 笔记",
+    title: "Aether-ar 笔记",
     description: "个人知识库",
   },
   search: {
