@@ -9,8 +9,8 @@ const { noteId } = Astro.props;
 const goatcounter = "zhjerry25";
 const pathEn = noteURL("en", noteId);
 const pathZh = noteURL("zh", noteId);
-const apiEn = `https://${goatcounter}.goatcounter.com/counter/${pathEn.replace(/^\/|\/$/g, "")}.json`;
-const apiZh = `https://${goatcounter}.goatcounter.com/counter/${pathZh.replace(/^\/|\/$/g, "")}.json`;
+const apiEn = `https://${goatcounter}.goatcounter.com/counter//${pathEn.replace(/^\/|\/$/g, "")}.json`;
+const apiZh = `https://${goatcounter}.goatcounter.com/counter//${pathZh.replace(/^\/|\/$/g, "")}.json`;
 ---
 
 <span
