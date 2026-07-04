@@ -5,8 +5,8 @@ interface Props {
 
 const { path } = Astro.props;
 const goatcounter = "zhjerry25";
-const apiEn = `https://${goatcounter}.goatcounter.com/counter/en/notes/${encodeURIComponent(path)}.json`;
-const apiZh = `https://${goatcounter}.goatcounter.com/counter/zh/notes/${encodeURIComponent(path)}.json`;
+const apiEn = `https://${goatcounter}.goatcounter.com/counter//en/notes/${encodeURI(path)}.json`;
+const apiZh = `https://${goatcounter}.goatcounter.com/counter//zh/notes/${encodeURI(path)}.json`;
 ---
 
 <span
