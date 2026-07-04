@@ -49,7 +49,7 @@ export const en = {
   home: {
     hero: "Aether-archive",
     tagline:
-      "Aether-ar is the personal knowledge base of a high school student, covering chemistry, computer science, math & physics, and whatever else catches my interest ^_^ Notes, resources, and tools.",
+      "This site is the personal knowledge base of a high school student, covering chemistry, computer science, math & physics, and whatever else catches my interest ^_^ Notes, resources, and tools.",
     recentUpdates: "Recent Updates",
     noNotes: "No notes yet. Check back soon!",
     viewAll: "View all notes →",
@@ -131,7 +131,7 @@ export const en = {
   },
   seo: {
     homeDescription:
-      "Aether-ar is the personal knowledge base of a high school student, covering chemistry, computer science, math & physics, and whatever else catches my interest ^_^ Notes, resources, and tools.",
+      "Aether-archive This site is the personal knowledge base of a high school student, covering chemistry, computer science, math & physics, and whatever else catches my interest ^_^ Notes, resources, and tools.",
     aboutDescription: "About me and this knowledge base.",
     recentsDescription: "All recent notes across all categories.",
     notesDescription: "Browse all notes organized by category and tags.",
@@ -141,7 +141,7 @@ export const en = {
     toolboxDescription: "Tool recommendations and utilities coming to the site.",
   },
   rss: {
-    title: "Aehter-ar Notes",
+    title: "Aehter-archive Notes",
     description: "Personal knowledge base",
   },
   search: {
