@@ -19,6 +19,8 @@ export function getReadingTime(
   const cleaned = text
     .replace(/```[\s\S]*?```/g, "")           // fenced code blocks
     .replace(/`[^`]*`/g, "")                    // inline code
+    .replace(/\$\$[\s\S]*?\$\$|\\\[.*?\\\]/g, "") // block math ($$...$$, \[...\])
+    .replace(/\$[^$]*\$|\\\(.*?\\\)/g, "")       // inline math ($...$, \(...\))
     .replace(/!\[([^\]]*)\]\([^)]+\)/g, "$1")   // images → keep alt text
     .replace(/\[([^\]]*)\]\([^)]+\)/g, "$1")     // links → keep link text
     .replace(/^>\s?/gm, "")                      // blockquote markers

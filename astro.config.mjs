@@ -6,6 +6,9 @@ import sitemap from "@astrojs/sitemap";
 
 import tailwindcss from "@tailwindcss/vite";
 
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+
 // https://astro.build/config
 export default defineConfig({
   site: "https://zhjerry25.github.io",
@@ -42,6 +45,12 @@ export default defineConfig({
   image: {
     layout: "constrained",
     responsiveStyles: true,
+  },
+
+  markdown: {
+    // $...$ (inline) and $$...$$ (block) math → KaTeX, rendered server-side.
+    remarkPlugins: [remarkMath],
+    rehypePlugins: [rehypeKatex],
   },
 
   vite: {
