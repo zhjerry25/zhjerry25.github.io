@@ -34,3 +34,6 @@ src/notes/.obsidian/
 
 # draft file
 draft.md
+
+# test file
+tests/

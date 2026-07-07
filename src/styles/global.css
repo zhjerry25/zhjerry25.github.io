@@ -21,3 +21,110 @@
   font-weight: 500;
   color: var(--color-gray-800);
 }
+
+.prose .md-card {
+  --md-card-accent: #61d62f;
+  --md-card-accent-soft: #d9f8c8;
+  --md-card-border: #b9eaa8;
+  margin-block: 1.75rem;
+  overflow: hidden;
+  border: 1px solid var(--md-card-border);
+  border-radius: 0.6rem;
+  background: #fff;
+}
+
+.prose .md-card--blue {
+  --md-card-accent: #3b82f6;
+  --md-card-accent-soft: #dbeafe;
+  --md-card-border: #bfdbfe;
+}
+
+.prose .md-card--purple {
+  --md-card-accent: #8b5cf6;
+  --md-card-accent-soft: #ede9fe;
+  --md-card-border: #ddd6fe;
+}
+
+.prose .md-card--gray {
+  --md-card-accent: #64748b;
+  --md-card-accent-soft: #f1f5f9;
+  --md-card-border: #cbd5e1;
+}
+
+.prose .md-card__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 1rem 1.35rem;
+  background: var(--md-card-accent-soft);
+  color: #1f2937;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.prose .md-card__icon {
+  display: inline-grid;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--md-card-accent);
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.prose .md-card__title {
+  min-width: 0;
+  font-size: 1.25rem;
+}
+
+.prose .md-card__body {
+  padding: 1.25rem 1.5rem;
+}
+
+.prose .md-card__body > :first-child {
+  margin-top: 0;
+}
+
+.prose .md-card__body > :last-child {
+  margin-bottom: 0;
+}
+
+.prose .md-card__body .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-block: 0.25rem;
+}
+
+.prose blockquote {
+  margin-block: 1.75rem;
+  border-left: 0.35rem solid #8b5cf6;
+  background: linear-gradient(90deg, #faf7ff 0%, #fff 100%);
+  padding: 0.7rem 1.35rem 0.7rem 1.5rem;
+  color: #30303a;
+  font-style: normal;
+  quotes: none;
+}
+
+.prose blockquote p:first-of-type::before,
+.prose blockquote p:last-of-type::after {
+  content: none;
+}
+
+.prose blockquote > :first-child {
+  margin-top: 0;
+}
+
+.prose blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.prose blockquote .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-block: 0.25rem;
+}

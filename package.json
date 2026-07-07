@@ -7,6 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
+    "test": "node --test",
     "build": "astro build",
     "postbuild": "npx pagefind --site dist",
     "preview": "astro preview",
@@ -23,6 +24,7 @@
     "pagefind": "^1.5.2",
     "preact": "^10.29.3",
     "rehype-katex": "^7.0.1",
+    "remark-directive": "^4.0.0",
     "remark-math": "^6.0.0",
     "sharp": "^0.35.3",
     "tailwindcss": "^4.3.1"

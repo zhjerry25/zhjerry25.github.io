@@ -7,7 +7,9 @@ import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 
 import remarkMath from "remark-math";
+import remarkDirective from "remark-directive";
 import rehypeKatex from "rehype-katex";
+import remarkContentBlocks from "./src/utils/remarkContentBlocks.mjs";
 
 // https://astro.build/config
 export default defineConfig({
@@ -49,7 +51,7 @@ export default defineConfig({
 
   markdown: {
     // $...$ (inline) and $$...$$ (block) math → KaTeX, rendered server-side.
-    remarkPlugins: [remarkMath],
+    remarkPlugins: [remarkMath, remarkDirective, remarkContentBlocks],
     rehypePlugins: [rehypeKatex],
   },
 
