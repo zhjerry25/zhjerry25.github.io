@@ -63,6 +63,15 @@ test("turns numeric image alt text into a responsive width hint", async () => {
   );
 });
 
+test("trims whitespace around numeric image width hints", async () => {
+  const html = await renderMarkdown("![ 603 ](water.jpg)");
+
+  assert.match(
+    html,
+    /<img src="water\.jpg" alt="" class="note-image note-image--sized" style="--note-image-width:603px">/,
+  );
+});
+
 test("preserves non-numeric image alt text", async () => {
   const html = await renderMarkdown("![water molecule](water.jpg)");
 

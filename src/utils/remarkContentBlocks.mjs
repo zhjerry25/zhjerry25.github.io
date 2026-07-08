@@ -43,9 +43,10 @@ function normalizeIcon(icon) {
 }
 
 function getPositiveInteger(value) {
-  if (!/^[1-9]\d*$/.test(value)) return null;
+  const normalizedValue = String(value || "").trim();
+  if (!/^[1-9]\d*$/.test(normalizedValue)) return null;
 
-  return Number(value);
+  return Number(normalizedValue);
 }
 
 function transformImage(node) {
