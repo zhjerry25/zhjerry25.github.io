@@ -77,7 +77,10 @@ function visit(node) {
     return;
   }
 
-  if (node.type === "containerDirective" && node.name === "card") {
+  const transformedCard =
+    node.type === "containerDirective" && node.name === "card";
+
+  if (transformedCard) {
     const attributes = node.attributes || {};
     const tone = normalizeTone(attributes.tone);
     const icon = normalizeIcon(attributes.icon);
@@ -140,7 +143,6 @@ function visit(node) {
     );
 
     node.children = children;
-    return;
   }
 
   if (!Array.isArray(node.children)) return;

@@ -87,3 +87,15 @@ test("clamps oversized numeric image width hints", async () => {
     /<img src="water\.jpg" alt="" class="note-image note-image--sized" style="--note-image-width:1200px">/,
   );
 });
+
+test("turns numeric image alt text inside cards into a responsive width hint", async () => {
+  const html = await renderMarkdown(`:::card
+![603](water.jpg)
+:::
+`);
+
+  assert.match(
+    html,
+    /<img src="water\.jpg" alt="" class="note-image note-image--sized" style="--note-image-width:603px">/,
+  );
+});
