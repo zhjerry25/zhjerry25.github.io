@@ -5,6 +5,7 @@ const CARD_ICONS = {
   warning: "!",
   none: "",
 };
+const MAX_IMAGE_WIDTH = 1200;
 
 function className(...names) {
   return names.filter(Boolean).join(" ");
@@ -41,8 +42,40 @@ function normalizeIcon(icon) {
   return Object.hasOwn(CARD_ICONS, icon) ? icon : "question";
 }
 
+function getPositiveInteger(value) {
+  if (!/^[1-9]\d*$/.test(value)) return null;
+
+  return Number(value);
+}
+
+function transformImage(node) {
+  const widthHint = getPositiveInteger(node.alt || "");
+  const hProperties = {
+    ...(node.data?.hProperties || {}),
+    className: "note-image",
+  };
+
+  if (widthHint) {
+    const width = Math.min(widthHint, MAX_IMAGE_WIDTH);
+
+    node.alt = "";
+    hProperties.className = "note-image note-image--sized";
+    hProperties.style = `--note-image-width:${width}px`;
+  }
+
+  node.data = {
+    ...(node.data || {}),
+    hProperties,
+  };
+}
+
 function visit(node) {
   if (!node || typeof node !== "object") return;
+
+  if (node.type === "image") {
+    transformImage(node);
+    return;
+  }
 
   if (node.type === "containerDirective" && node.name === "card") {
     const attributes = node.attributes || {};
