@@ -238,9 +238,8 @@ X^2^       （上标）
 > **重要**：请先安装依赖。
 
 1. 克隆仓库
-   ```bash
-   git clone xxx
-   ```
+   `git clone xxx`
+
 2. 安装依赖
    - [x] npm install
    - [ ] 配置环境变量
