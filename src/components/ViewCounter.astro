@@ -1,14 +1,13 @@
 ---
-import { noteURL } from "../utils/notes";
+import { getNoteViewPaths } from "../utils/notes";
 
 interface Props {
-  noteId: string;
+  translationKey: string;
 }
 
-const { noteId } = Astro.props;
+const { translationKey } = Astro.props;
 const goatcounter = "zhjerry25";
-const pathEn = noteURL("en", noteId);
-const pathZh = noteURL("zh", noteId);
+const { shared, legacyZh } = getNoteViewPaths(translationKey);
 
 async function fetchViewCount(path: string): Promise<number> {
   try {
@@ -26,8 +25,8 @@ async function fetchViewCount(path: string): Promise<number> {
 }
 
 const [countEn, countZh] = await Promise.all([
-  fetchViewCount(pathEn),
-  fetchViewCount(pathZh),
+  fetchViewCount(shared),
+  fetchViewCount(legacyZh),
 ]);
 const total = countEn + countZh;
 ---

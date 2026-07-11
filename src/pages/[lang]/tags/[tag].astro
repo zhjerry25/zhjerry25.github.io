@@ -1,7 +1,7 @@
 ---
-import { getCollection } from "astro:content";
 import BaseLayout from "../../../layouts/Baselayout.astro";
 import { getReadingTime } from "../../../utils/readingTime";
+import { getAllNotes, getLocalizedNotes } from "../../../utils/noteCollection";
 import { noteURL } from "../../../utils/notes";
 import { getLocale, type Lang } from "../../../i18n/utils";
 import { en } from "../../../i18n/en";
@@ -9,7 +9,7 @@ import { zh } from "../../../i18n/zh";
 import type { Translations } from "../../../i18n/types";
 
 export async function getStaticPaths() {
-  const allNotes = await getCollection("notes");
+  const allNotes = await getAllNotes();
   const uniqueTags = [...new Set(allNotes.map((note) => note.data.tags).flat())];
 
   const paths: { params: { lang: string; tag: string }; props: { t: Translations } }[] = [];
@@ -24,7 +24,7 @@ const { lang, tag } = Astro.params as { lang: Lang; tag: string };
 const { t } = Astro.props as { t: Translations };
 const locale = getLocale(lang);
 
-const allNotes = await getCollection("notes");
+const allNotes = await getLocalizedNotes(lang);
 const notes = allNotes.filter((note) =>
   note.data.tags.includes(tag!)
 );
@@ -47,7 +47,7 @@ const notes = allNotes.filter((note) =>
       const { short: readingTime } = getReadingTime(note.body || "", lang);
       return (
         <a
-          href={noteURL(lang, note.id)}
+          href={noteURL(lang, note.data.translationKey)}
           class="block rounded-lg border border-neutral-200 p-4 hover:border-neutral-300 hover:bg-neutral-50 transition-colors"
           data-pagefind-ignore
         >

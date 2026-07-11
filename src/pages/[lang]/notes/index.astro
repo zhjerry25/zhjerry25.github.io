@@ -1,9 +1,9 @@
 ---
-import { getCollection } from "astro:content";
 import BaseLayout from "../../../layouts/Baselayout.astro";
 import BlogPost from "../../../components/BlogPost.astro";
 import { getReadingTime } from "../../../utils/readingTime";
-import { noteURL, splitNoteId } from "../../../utils/notes";
+import { getLocalizedNotes } from "../../../utils/noteCollection";
+import { noteURL, splitTranslationKey } from "../../../utils/notes";
 import { getLocale, type Lang } from "../../../i18n/utils";
 import { en } from "../../../i18n/en";
 import { zh } from "../../../i18n/zh";
@@ -20,14 +20,14 @@ const { lang } = Astro.params as { lang: Lang };
 const { t } = Astro.props as { t: Translations };
 const locale = getLocale(lang);
 
-const allNotes = await getCollection("notes");
+const allNotes = await getLocalizedNotes(lang);
 
 const sortedNotes = allNotes.sort(
   (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
 );
 
-const getCategoryLabel = (id: string): string => {
-  const { category } = splitNoteId(id);
+const getCategoryLabel = (translationKey: string): string => {
+  const { category } = splitTranslationKey(translationKey);
   return t.categories[category as keyof typeof t.categories] || category;
 };
 
@@ -51,12 +51,12 @@ const formatDate = (d: Date) =>
         return (
           <BlogPost
             title={note.data.title}
-            url={noteURL(lang, note.id)}
-            label={getCategoryLabel(note.id)}
+            url={noteURL(lang, note.data.translationKey)}
+            label={getCategoryLabel(note.data.translationKey)}
             date={formatDate(note.data.pubDate)}
             tags={note.data.tags}
             description={note.data.description}
-            noteId={note.id}
+            translationKey={note.data.translationKey}
             readingTime={readingTime}
           />
         );

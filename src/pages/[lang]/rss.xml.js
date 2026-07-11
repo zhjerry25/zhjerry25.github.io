@@ -1,7 +1,8 @@
 import rss from "@astrojs/rss";
-import { getCollection } from "astro:content";
 import { en } from "../../i18n/en";
 import { zh } from "../../i18n/zh";
+import { getLocalizedNotes } from "../../utils/noteCollection";
+import { noteURL } from "../../utils/notes";
 
 export async function getStaticPaths() {
   return [
@@ -13,7 +14,7 @@ export async function getStaticPaths() {
 export async function GET({ params, props, site }) {
   const { lang } = params;
   const { t } = props;
-  const notes = await getCollection("notes");
+  const notes = await getLocalizedNotes(lang);
 
   return rss({
     title: t.rss.title,
@@ -25,7 +26,7 @@ export async function GET({ params, props, site }) {
         title: note.data.title,
         pubDate: note.data.pubDate,
         description: note.data.description,
-        link: `/${lang}/notes/${note.id}/`,
+        link: noteURL(lang, note.data.translationKey),
       })),
     customData: `<language>${lang === "en" ? "en-us" : "zh-cn"}</language>`,
   });

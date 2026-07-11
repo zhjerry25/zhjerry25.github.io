@@ -17,6 +17,7 @@ interface Props {
   t: Translations;
   seoDescription?: string;
   canonicalURL?: string;
+  analyticsPath?: string;
   ogImage?: OgImage;
   seoType?: "website" | "article";
   pubDate?: Date;
@@ -32,6 +33,7 @@ const {
   t,
   seoDescription,
   canonicalURL,
+  analyticsPath,
   ogImage,
   seoType = "website",
   pubDate,
@@ -50,6 +52,7 @@ const description = seoDescription || t.seo.homeDescription;
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
     <script is:inline data-goatcounter="https://zhjerry25.goatcounter.com/count"
+            data-goatcounter-settings={analyticsPath ? JSON.stringify({ path: analyticsPath }) : undefined}
             async src="https://gc.zgo.at/count.js"></script>
     <SEO
       title={pageTitle}

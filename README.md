@@ -8,6 +8,13 @@ Welcome to the repository
   <a href="https://astro.build"><img src="https://img.shields.io/badge/built%20with-Astro%207-%23BC52EE" alt="Astro"></a>
 </p>
 
+### Notes authoring
+
+Every note is published as a bilingual pair in `src/notes/<category>/` using
+the same basename with `.en.md` and `.zh.md` suffixes. Both files must declare
+matching `translationKey`, `pubDate`, and `tags` values; `lang` must match the
+filename suffix. The build rejects incomplete or inconsistent pairs.
+
 ### License
 
 Unless otherwise noted, all content on this site is licensed under CC BY-SA 4.0. You are free to copy, distribute, display, and remix, as long as you give appropriate credit and share derivative works under the same license.

@@ -2,6 +2,8 @@
 title: Markdown 语法参考
 pubDate: 2026-07-09
 description: Markdown 输入语法大全
+lang: zh
+translationKey: cs/markdown
 tags:
   - web
 ---

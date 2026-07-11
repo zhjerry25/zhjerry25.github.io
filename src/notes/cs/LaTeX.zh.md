@@ -1,5 +1,7 @@
 ---
 title: Markdown 中的 LaTeX 语法参考
+lang: zh
+translationKey: cs/latex
 pubDate: 2026-07-09
 description: LaTeX (KaTeX) 输入语法大全
 tags:

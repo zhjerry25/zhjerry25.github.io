@@ -1,34 +1,28 @@
 ---
-import { getCollection, render, type CollectionEntry } from "astro:content";
+import { render } from "astro:content";
 import { getImage } from "astro:assets";
 import MarkdownPostLayout from "../../../../layouts/MarkdownPostLayout.astro";
 import { getReadingTime } from "../../../../utils/readingTime";
-import { noteURL, splitNoteId } from "../../../../utils/notes";
+import { getAllNotes, type NoteEntry } from "../../../../utils/noteCollection";
+import { noteURL, splitTranslationKey } from "../../../../utils/notes";
 import { en } from "../../../../i18n/en";
 import { zh } from "../../../../i18n/zh";
 import type { Lang } from "../../../../i18n/utils";
 import type { Translations } from "../../../../i18n/types";
 
-type Note = CollectionEntry<"notes">;
-
 export async function getStaticPaths() {
-  const allNotes = await getCollection("notes");
+  const allNotes = await getAllNotes();
+  const translations: Record<Lang, Translations> = { en, zh };
 
-  const paths: { params: { lang: string; category: string; slug: string }; props: { t: Translations; post: Note; readingTime: string } }[] = [];
+  const paths: { params: { lang: Lang; category: string; slug: string }; props: { t: Translations; post: NoteEntry; readingTime: string } }[] = [];
 
   for (const note of allNotes) {
-    const { category, slug } = splitNoteId(note.id);
-
-    const rtEn = getReadingTime(note.body || "", "en");
-    const rtZh = getReadingTime(note.body || "", "zh");
-
+    const { category, slug } = splitTranslationKey(note.data.translationKey);
+    const lang = note.data.lang;
+    const readingTime = getReadingTime(note.body || "", lang);
     paths.push({
-      params: { lang: "en", category, slug },
-      props: { t: en, post: note, readingTime: rtEn.full },
-    });
-    paths.push({
-      params: { lang: "zh", category, slug },
-      props: { t: zh, post: note, readingTime: rtZh.full },
+      params: { lang, category, slug },
+      props: { t: translations[lang], post: note, readingTime: readingTime.full },
     });
   }
 
@@ -36,7 +30,7 @@ export async function getStaticPaths() {
 }
 
 const { lang } = Astro.params as { lang: Lang };
-const { t, post, readingTime } = Astro.props as { t: Translations; post: Note; readingTime?: string };
+const { t, post, readingTime } = Astro.props as { t: Translations; post: NoteEntry; readingTime?: string };
 const { Content } = await render(post);
 
 // Resolve og:image via Astro's native image pipeline. The frontmatter `image`
@@ -61,8 +55,8 @@ if (post.data.image) {
   frontmatter={post.data}
   lang={lang}
   t={t}
-  canonicalURL={noteURL(lang, post.id)}
-  noteId={post.id}
+  canonicalURL={noteURL(lang, post.data.translationKey)}
+  translationKey={post.data.translationKey}
   readingTime={readingTime}
   ogImage={ogImage}
 >

@@ -4,6 +4,7 @@ import { getLocale, type Lang } from "../i18n/utils";
 import type { Translations } from "../i18n/types";
 import GiscusComments from "../components/GiscusComments.astro";
 import type { OgImage } from "../components/SEO.astro";
+import { getNoteAnalyticsPath } from "../utils/notes";
 
 interface Props {
   frontmatter: {
@@ -15,12 +16,12 @@ interface Props {
   lang: Lang;
   t: Translations;
   canonicalURL: string;
-  noteId?: string;
+  translationKey: string;
   readingTime?: string;
   ogImage?: OgImage;
 }
 
-const { frontmatter, lang, t, canonicalURL, noteId, readingTime, ogImage } = Astro.props;
+const { frontmatter, lang, t, canonicalURL, translationKey, readingTime, ogImage } = Astro.props;
 const locale = getLocale(lang);
 ---
 
@@ -31,6 +32,7 @@ const locale = getLocale(lang);
   t={t}
   seoDescription={frontmatter.description || frontmatter.title}
   canonicalURL={canonicalURL}
+  analyticsPath={getNoteAnalyticsPath(translationKey)}
   ogImage={ogImage}
   seoType="article"
   pubDate={frontmatter.pubDate}
@@ -82,5 +84,5 @@ const locale = getLocale(lang);
 
   </article>
 
-  {noteId && <GiscusComments term={noteId} lang={lang} t={t} />}
+  <GiscusComments term={translationKey} lang={lang} t={t} />
 </BaseLayout>

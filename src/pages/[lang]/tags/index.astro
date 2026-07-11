@@ -1,6 +1,6 @@
 ---
-import { getCollection } from "astro:content";
 import BaseLayout from "../../../layouts/Baselayout.astro";
+import { getLocalizedNotes } from "../../../utils/noteCollection";
 import { en } from "../../../i18n/en";
 import { zh } from "../../../i18n/zh";
 import type { Lang } from "../../../i18n/utils";
@@ -16,7 +16,7 @@ export function getStaticPaths() {
 const { lang } = Astro.params as { lang: Lang };
 const { t } = Astro.props as { t: Translations };
 
-const allNotes = await getCollection("notes");
+const allNotes = await getLocalizedNotes(lang);
 const tags = [...new Set(allNotes.map((note) => note.data.tags).flat())].sort();
 ---
 
