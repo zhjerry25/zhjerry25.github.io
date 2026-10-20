@@ -7,10 +7,11 @@ import { z } from "astro/zod";
 import { TRANSLATION_KEY_PATTERN } from "./utils/notes";
 
 // Single notes collection — one schema, one source of truth.
-// Category is derived from the first path segment of each entry's id
-// (e.g., "chem/reaction-mechanisms" → category: chem).
+// Discover bilingual notes recursively, including per-note folders. Other .md
+// files (e.g. README.md) are not published. Public URLs and categories come
+// from translationKey, independently of the source folder and filename.
 const notes = defineCollection({
-  loader: glob({ pattern: '**/[^_]*.md', base: "./src/notes" }),
+  loader: glob({ pattern: '**/[^_]*.{en,zh}.md', base: "./src/notes" }),
   schema: ({ image }) => z.object({
     title: z.string(),
     pubDate: z.date(),

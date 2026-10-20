@@ -69,6 +69,45 @@ test("accepts one matching English and Chinese entry", () => {
   );
 });
 
+test("accepts folder-based notes while keeping their public URLs stable", () => {
+  const notes = ["en", "zh"].map((lang) =>
+    note({ lang, filePath: `src/notes/chem/1-hydrogen/index.${lang}.md` }),
+  );
+
+  assert.doesNotThrow(() => validateNoteTranslations(notes));
+  assert.equal(noteURL("en", notes[0].data.translationKey), "/en/notes/chem/1-hydrogen/");
+});
+
+test("indexes repeated basenames in separate note folders and nested groups", () => {
+  const notes = ["1-hydrogen", "2-helium"].flatMap((slug) =>
+    ["en", "zh"].map((lang) =>
+      note({
+        lang,
+        translationKey: `chem/${slug}`,
+        filePath: `src/notes/chem/elements/${slug}/index.${lang}.md`,
+      }),
+    ),
+  );
+
+  assert.doesNotThrow(() => validateNoteTranslations(notes));
+  assert.equal(getNotesForLang(notes, "en").length, 2);
+  assert.deepEqual(notes.filter((note) => note.data.lang === "en").map((note) =>
+    noteURL("en", note.data.translationKey),
+  ), ["/en/notes/chem/1-hydrogen/", "/en/notes/chem/2-helium/"]);
+});
+
+test("supports flat and folder-based notes in the same category", () => {
+  assert.doesNotThrow(() => validateNoteTranslations([
+    note({ lang: "en" }),
+    note({ lang: "zh" }),
+    ...["en", "zh"].map((lang) => note({
+      lang,
+      translationKey: "chem/2-helium",
+      filePath: `src/notes/chem/2-helium/Helium.${lang}.md`,
+    })),
+  ]));
+});
+
 test("rejects a missing translation", () => {
   assert.throws(
     () => validateNoteTranslations([note({ lang: "zh" })]),
