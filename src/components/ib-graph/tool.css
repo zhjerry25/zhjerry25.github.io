@@ -1,0 +1,58 @@
+.ib-tool { color: #25302a; --ib-border: #d9dfda; --ib-green: #2f632d; }
+.ib-preview, .ib-panel { border: 1px solid var(--ib-border); border-radius: .65rem; background: white; }
+.ib-preview { overflow: hidden; }
+.ib-canvas { overflow-x: auto; }
+.ib-zoom { display: none; }
+.ib-canvas > svg { display: block; width: 100%; height: auto; }
+.ib-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .65rem; padding: .75rem 1rem; border-bottom: 1px solid var(--ib-border); background: #f5faf2; }
+.ib-tool h2, .ib-tool h3 { font-size: 1.05rem; font-weight: 650; }
+.ib-toolbar h2 { margin-right: auto; }
+.ib-language { display: flex; gap: .45rem; align-items: center; font-size: .875rem; }
+.ib-tool input:not([type=checkbox]), .ib-tool select, .ib-tool button { border: 1px solid var(--ib-border); border-radius: .38rem; background: white; color: inherit; padding: .38rem .55rem; min-height: 2.25rem; font: inherit; }
+.ib-tool select { appearance: none; padding-right: 1.9rem; background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='m1 1 5 5 5-5' fill='none' stroke='%235b655e' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right .6rem center; }
+.ib-tool button { cursor: pointer; font-size: .875rem; font-weight: 550; }
+.ib-tool button:hover { background-color: #eef6ea; }
+.ib-tool :focus-visible { outline: 2px solid #548348; outline-offset: 1px; }
+.ib-tool button.ib-primary { display: inline-flex; align-items: center; gap: .45rem; color: white; background: var(--ib-green); border-color: var(--ib-green); padding-inline: .85rem; }
+.ib-tool button.ib-primary:hover { background: #244f23; }
+.ib-tool button:disabled { opacity: .55; cursor: default; }
+.ib-editors { margin-top: 1rem; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+.ib-panel { min-width: 0; padding: 1.1rem; }
+.ib-help { font-size: .875rem; line-height: 1.5; color: #566159; margin: .4rem 0 .85rem; }
+.ib-grid { width: 100%; table-layout: fixed; border-spacing: 0; border-collapse: separate; font-variant-numeric: tabular-nums; font-size: .95rem; }
+.ib-grid th { font-weight: 550; }
+.ib-grid th, .ib-grid td { padding: .14rem; text-align: left; vertical-align: top; }
+.ib-grid th:first-child { width: 2rem; color: #606c64; text-align: center; }
+.ib-grid th:last-child { width: 2rem; }
+.ib-grid tbody th { line-height: 2.25rem; font-size: .85rem; }
+.ib-grid input, .ib-field input, .ib-field select { width: 100%; min-width: 0; }
+.ib-tool input::placeholder { color: #77837c; }
+.ib-tool .ib-delete, .ib-tool .ib-text-button { border-color: transparent; background: transparent; color: #54665a; }
+.ib-tool .ib-delete { padding: .2rem; width: 100%; font-size: 1.1rem; }
+.ib-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .65rem; }
+.ib-section { margin-top: 1.15rem; padding-top: 1rem; border-top: 1px solid #e3e7e3; }
+.ib-fields, .ib-field { display: grid; gap: .28rem; }
+.ib-fields { gap: .6rem; margin-top: .7rem; }
+.ib-field { font-size: .875rem; color: #455049; }
+.ib-section > .ib-field { margin-top: .55rem; }
+.ib-axis, .ib-pair { display: grid; gap: .7rem; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+.ib-pair { grid-template-columns: repeat(2, minmax(0,1fr)); }
+.ib-check { display: flex; align-items: center; gap: .5rem; margin-top: .65rem; font-size: .9rem; }
+.ib-check input { accent-color: var(--ib-green); width: 1rem; height: 1rem; }
+.ib-notice { margin: .1rem 1rem .8rem; color: #884b12; font-size: .9rem; }
+.ib-tool small { display: block; color: #a43024; overflow-wrap: anywhere; }
+.ib-tool input[aria-invalid=true] { border-color: #b64b3f; }
+@media (max-width: 1150px) {
+  .ib-editors { grid-template-columns: 1fr; }
+}
+@media (max-width: 540px) {
+  .ib-toolbar { padding: .65rem; }
+  .ib-zoom { display: inline-block; }
+  .ib-canvas.is-zoomed > svg { min-width: 850px; }
+  .ib-toolbar { display: grid; grid-template-columns: 1fr auto; }
+  .ib-toolbar .ib-zoom { justify-self: end; }
+  .ib-language { margin-right: auto; }
+  .ib-panel { padding: .8rem; }
+  .ib-grid th:first-child, .ib-grid th:last-child { width: 1.5rem; }
+  .ib-tool input:not([type=checkbox]) { padding-inline: .32rem; font-size: 1rem; }
+}

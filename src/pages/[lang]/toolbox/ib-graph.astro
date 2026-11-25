@@ -1,0 +1,16 @@
+---
+import BaseLayout from "../../../layouts/Baselayout.astro";
+import GraphTool from "../../../components/ib-graph/GraphTool";
+import { copy } from "../../../components/ib-graph/copy";
+import { en } from "../../../i18n/en";
+import { zh } from "../../../i18n/zh";
+
+export function getStaticPaths() {
+  return (["en", "zh"] as const).map(lang => ({ params: { lang } }));
+}
+const { lang } = Astro.params;
+const text = copy[lang];
+---
+<BaseLayout pageTitle={text.name} seoDescription={text.description} lang={lang} t={lang === "en" ? en : zh} wide>
+  <GraphTool lang={lang} client:load />
+</BaseLayout>

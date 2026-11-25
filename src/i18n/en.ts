@@ -43,7 +43,7 @@ export const en = {
     },
     toolbox: {
       emoji: "🧰",
-      desc: "Tool recommendations and utilities coming to the site.",
+      desc: "Tools for studying and lab work.",
     },
   },
   home: {
@@ -118,8 +118,7 @@ export const en = {
   },
   toolbox: {
     title: "Toolbox",
-    description: "Tool recommendations and utilities coming to the site.",
-    wip: "This page is a work in progress. Tools and utilities will be listed here soon.",
+    description: "Tools for studying and lab work.",
   },
   footer: {
     copyright: "Copyright © 2026-present by Jerry is licensed under CC BY-SA 4.0",
@@ -138,7 +137,7 @@ export const en = {
     tagsDescription: "Browse all tags used across notes.",
     resourcesDescription:
       "A collection of digital materials, references, and links.",
-    toolboxDescription: "Tool recommendations and utilities coming to the site.",
+    toolboxDescription: "Tools for studying and lab work.",
   },
   rss: {
     title: "Aehter-archive Notes",

@@ -1,4 +1,5 @@
 ---
+import { copy } from "../../components/ib-graph/copy";
 import BaseLayout from "../../layouts/Baselayout.astro";
 import { en } from "../../i18n/en";
 import { zh } from "../../i18n/zh";
@@ -25,7 +26,17 @@ const { t } = Astro.props as { t: Translations };
 >
   <p class="text-neutral-500 mb-6">{t.toolbox.description}</p>
 
-  <div class="prose prose-neutral max-w-none">
-    <p>{t.toolbox.wip}</p>
-  </div>
+  <a href={`/${lang}/toolbox/ib-graph/`}
+    class="flex items-center gap-4 rounded-lg border border-neutral-200 p-4 transition-colors hover:border-neutral-300 hover:bg-neutral-50">
+    <span class="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-green-50 text-green-800">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+        <path d="M3 3v20h21M6 19l16-13" />
+        <path d="M8 13v6m-2-6h4m-4 6h4m8-13v6m-2-6h4m-4 6h4" />
+      </svg>
+    </span>
+    <div>
+      <h2 class="text-base font-medium text-gray-900">{copy[lang].name}</h2>
+      <p class="mt-1 text-sm text-neutral-600">{copy[lang].description}</p>
+    </div>
+  </a>
 </BaseLayout>

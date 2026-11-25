@@ -43,7 +43,7 @@ export const zh = {
     },
     toolbox: {
       emoji: "🧰",
-      desc: "工具分享和网站未来内嵌的工具",
+      desc: "学习与实验中用得上的小工具",
     },
   },
   home: {
@@ -116,8 +116,7 @@ export const zh = {
   },
   toolbox: {
     title: "工具箱",
-    description: "工具分享和网站未来内嵌的工具",
-    wip: "此页面正在建设中，工具和实用程序未来会列在这里",
+    description: "学习与实验中用得上的小工具",
   },
   footer: {
     copyright:
@@ -135,7 +134,7 @@ export const zh = {
     notesDescription: "按分类和标签浏览所有笔记",
     tagsDescription: "浏览笔记中使用的所有标签",
     resourcesDescription: "存放收集的电子材料、参考资料和链接",
-    toolboxDescription: "工具分享和网站未来内嵌的工具",
+    toolboxDescription: "学习与实验中用得上的小工具",
   },
   rss: {
     title: "Aether-archive 笔记",

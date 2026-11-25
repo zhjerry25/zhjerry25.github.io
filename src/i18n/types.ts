@@ -75,7 +75,6 @@ export interface Translations {
   toolbox: {
     title: string;
     description: string;
-    wip: string;
   };
   footer: {
     copyright: string;
