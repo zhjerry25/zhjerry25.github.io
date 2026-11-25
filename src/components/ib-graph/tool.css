@@ -16,6 +16,10 @@
 .ib-tool button.ib-primary { display: inline-flex; align-items: center; gap: .45rem; color: white; background: var(--ib-green); border-color: var(--ib-green); padding-inline: .85rem; }
 .ib-tool button.ib-primary:hover { background: #244f23; }
 .ib-tool button:disabled { opacity: .55; cursor: default; }
+.ib-line-styles { padding: .65rem 1rem; border-top: 1px solid var(--ib-border); font-size: .9rem; }
+.ib-line-styles summary { cursor: pointer; color: var(--ib-green); font-weight: 600; }
+.ib-line-row { display: grid; grid-template-columns: minmax(0, 1fr) 2.75rem 7rem; align-items: center; gap: .65rem; max-width: 23rem; margin-top: .5rem; }
+.ib-line-row input[type=color] { width: 100%; height: 2.25rem; padding: .15rem; cursor: pointer; }
 .ib-editors { margin-top: 1rem; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
 .ib-panel { min-width: 0; padding: 1.1rem; }
 .ib-help { font-size: .875rem; line-height: 1.5; color: #566159; margin: .4rem 0 .85rem; }

@@ -2,7 +2,7 @@ import { useRef, useState } from "preact/hooks";
 import type { JSX } from "preact";
 import type { Lang } from "../../i18n/utils";
 import { copy } from "./copy";
-import { Figure, downloadPng } from "./Figure";
+import { Figure, defaultStyles, downloadPng, type LineStyle } from "./Figure";
 import { endpointSlopes, example, fit, parseCell, type Model, type Point } from "./graph";
 import "./tool.css";
 
@@ -23,6 +23,7 @@ export default function GraphTool({ lang }: { lang: Lang }) {
   const [bars, setBars] = useState(true);
   const [zoom, setZoom] = useState(false);
   const [bounds, setBounds] = useState(true);
+  const [styles, setStyles] = useState(defaultStyles);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState(false);
   const svg = useRef<SVGSVGElement>(null);
@@ -56,6 +57,9 @@ export default function GraphTool({ lang }: { lang: Lang }) {
     ...(extremes.max ? [{ kind: "max" as const, curve: extremes.max }] : []),
   ];
 
+  function changeStyle(kind: keyof typeof defaultStyles, change: Partial<LineStyle>) {
+    setStyles(previous => ({ ...previous, [kind]: { ...previous[kind], ...change } }));
+  }
   function updateCell(row: number, column: number, value: string) {
     setRows(previous => previous.map((cells, i) => i === row
       ? cells.map((cell, j) => j === column ? value : cell) : cells));
@@ -79,6 +83,7 @@ export default function GraphTool({ lang }: { lang: Lang }) {
     setRows([emptyRow()]);
     setShared(["", ""]);
     setCustom({});
+    setStyles(defaultStyles);
     setExportError(false);
   }
   async function save() {
@@ -111,11 +116,28 @@ export default function GraphTool({ lang }: { lang: Lang }) {
       <div class={"ib-canvas" + (zoom ? " is-zoomed" : "")}>
       <Figure svgRef={svg} t={f} title={labels.title} xLabel={labels.xName} yLabel={labels.yName}
         ySymbol={isExample && custom.yName === undefined ? "F" : "y"} xUnit={labels.xUnit}
-        yUnit={labels.yUnit} points={points} lines={lines} bars={bars} />
+        yUnit={labels.yUnit} points={points} lines={lines} styles={styles} bars={bars} />
       </div>
       {(result?.error || extremes.error || exportError) && <p class="ib-notice" role="status">
         {result?.error && t[result.error]} {extremes.error && t[extremes.error]} {exportError && t.exportError}
       </p>}
+      {lines.length > 0 && <details class="ib-line-styles">
+        <summary>{t.lineStyles}</summary>
+        <datalist id="ib-palette">
+          {["#20649d", "#108477", "#bc551d", "#8545a3", "#b43d61", "#26343d"].map(color =>
+            <option key={color} value={color} />)}
+        </datalist>
+        {lines.map(({ kind }) => <div class="ib-line-row" key={kind}>
+          <span>{t[kind]}</span>
+          <input type="color" list="ib-palette" value={styles[kind].color}
+            aria-label={t[kind] + " · " + t.color} title={t.color}
+            onInput={e => changeStyle(kind, { color: e.currentTarget.value })} />
+          <select aria-label={t[kind] + " · " + t.pattern} value={styles[kind].pattern}
+            onChange={e => changeStyle(kind, { pattern: e.currentTarget.value as LineStyle["pattern"] })}>
+            {Object.entries(t.patterns).map(([value, name]) => <option key={value} value={value}>{name}</option>)}
+          </select>
+        </div>)}
+      </details>}
     </section>
     <div class="ib-editors">
       <section class="ib-panel">

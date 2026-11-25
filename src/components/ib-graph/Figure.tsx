@@ -4,10 +4,17 @@ import type { Labels } from "./copy";
 import { equation, numberText, type Curve, type Point } from "./graph";
 
 type Line = { curve: Curve; kind: "best" | "min" | "max" };
-const styles = {
-  best: { color: "#20649d", dash: undefined },
-  min: { color: "#108477", dash: "15 9" },
-  max: { color: "#bc551d", dash: "7 7" },
+export const dashPatterns = {
+  solid: undefined,
+  longDash: "15 9",
+  shortDash: "7 7",
+  dashDot: "14 5 3 5",
+};
+export type LineStyle = { color: string; pattern: keyof typeof dashPatterns };
+export const defaultStyles: Record<Line["kind"], LineStyle> = {
+  best: { color: "#20649d", pattern: "solid" },
+  min: { color: "#108477", pattern: "longDash" },
+  max: { color: "#bc551d", pattern: "shortDash" },
 };
 const ink = "#182c39";
 function fitSize(text: string, size: number, width: number) {
@@ -15,9 +22,9 @@ function fitSize(text: string, size: number, width: number) {
   return Math.min(size, width / (units || 1));
 }
 
-export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit, points, lines, bars }: {
+export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit, points, lines, styles, bars }: {
   svgRef: Ref<SVGSVGElement>; t: Labels; title: string; xLabel: string; yLabel: string; ySymbol: string;
-  xUnit: string; yUnit: string; points: Point[]; lines: Line[]; bars: boolean;
+  xUnit: string; yUnit: string; points: Point[]; lines: Line[]; styles: typeof defaultStyles; bars: boolean;
 }) {
   let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
   const showXRange = bars || lines.some(line => line.kind !== "best");
@@ -97,7 +104,7 @@ export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit
             path += (move ? "M" : "L") + px(x) + " " + py(y);
             move = false;
           }
-          return <path key={kind} d={path} fill="none" stroke={styles[kind].color} stroke-width="3.3" stroke-dasharray={styles[kind].dash} />;
+          return <path key={kind} d={path} fill="none" stroke={styles[kind].color} stroke-width="3.3" stroke-dasharray={dashPatterns[styles[kind].pattern]} />;
         })}
         {points.map((p, i) => {
           const x = px(p.x), y = py(p.y);
@@ -110,13 +117,10 @@ export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit
         })}
       </g>
       {lines.map(({ curve, kind }, i) => {
-        const detail = kind === "best" ? points.length + " " + t.points : t.endpoints;
         const formula = ySymbol + " = " + equation(curve);
         return <g key={kind} transform={`translate(850 ${legendTop + i * 85})`}>
-          <path d="M0 0h47" stroke={styles[kind].color} stroke-width="3.5" stroke-dasharray={styles[kind].dash} />
-          <text x="59" y="5" font-size={fitSize(t[kind] + " · " + detail, 18, 274)}>
-            <tspan font-weight="600">{t[kind]}</tspan><tspan>{" · " + detail}</tspan>
-          </text>
+          <path d="M0 0h47" stroke={styles[kind].color} stroke-width="3.5" stroke-dasharray={dashPatterns[styles[kind].pattern]} />
+          <text x="59" y="5" font-size="18" font-weight="600">{t[kind]}</text>
           <text x="59" y="34" fill={styles[kind].color} font-size={fitSize(formula, 20, 270)}>{formula}</text>
         </g>;
       })}
