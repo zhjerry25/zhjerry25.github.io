@@ -1,4 +1,5 @@
 import type { Ref } from "preact";
+import { makeAxis } from "./axis";
 import type { Labels } from "./copy";
 import { equation, numberText, type Curve, type Point } from "./graph";
 
@@ -9,32 +10,6 @@ const styles = {
   max: { color: "#bc551d", dash: "7 7" },
 };
 const ink = "#182c39";
-const box = { left: 113, right: 802, top: 122, bottom: 598 };
-
-function axis(low: number, high: number, intervals: number) {
-  if (low === high) {
-    const pad = Math.abs(low) * 0.1 || 1;
-    low -= pad;
-    high += pad;
-  }
-  const raw = (high - low) / intervals;
-  const power = 10 ** Math.floor(Math.log10(raw));
-  const multiple = [1, 2, 2.5, 4, 5, 10].find(n => n >= raw / power) ?? 10;
-  const step = power * multiple;
-  const first = Math.floor(low / step);
-  const count = Math.ceil(high / step) - first;
-  if (!Number.isFinite(count) || count < 1 || count > 20) return null;
-  const ticks = Array.from({ length: count + 1 }, (_, i) => (first + i) * step);
-  return { ticks, min: ticks[0], max: ticks[count], step };
-}
-
-function tickText(n: number, step: number) {
-  if (step < 0.0001 || Math.abs(n) >= 1e6) return numberText(n);
-  const digits = Math.max(0, -Math.floor(Math.log10(step)));
-  const extra = Math.abs(step * 10 ** digits % 1) > 1e-8 ? 1 : 0;
-  return n.toFixed(digits + extra).replace(/^-/, "−");
-}
-
 function fitSize(text: string, size: number, width: number) {
   const units = Array.from(text).reduce((sum, c) => sum + (c.charCodeAt(0) > 255 ? 1 : 0.59), 0);
   return Math.min(size, width / (units || 1));
@@ -57,7 +32,7 @@ export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit
     const [lo, hi] = line.curve.model === "linear" ? [xMin, xMax] : domain;
     const segments = line.curve.model === "linear" ? 1 : 160;
     const samples = Array.from({ length: segments + 1 }, (_, i) => {
-      const x = lo + (hi - lo) * i / segments;
+      const x = i === 0 ? lo : i === segments ? hi : lo * (1 - i / segments) + hi * (i / segments);
       return { x, y: line.curve.at(x) };
     });
     for (const { y } of samples) {
@@ -65,35 +40,56 @@ export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit
     }
     return { ...line, samples };
   });
-  const xa = axis(xMin, xMax, 6), ya = axis(yMin, yMax, 5);
+  const xa = makeAxis(xMin, xMax, 6), ya = makeAxis(yMin, yMax, 5);
   const plotted = points.length > 0 && xa && ya;
-  const px = (x: number) => box.left + (x - xa!.min) / (xa!.max - xa!.min) * (box.right - box.left);
-  const py = (y: number) => box.bottom - (y - ya!.min) / (ya!.max - ya!.min) * (box.bottom - box.top);
-  const uncertainty = (key: "dx" | "dy", unit: string) => {
-    const value = points[0]?.[key];
-    return points.every(p => p[key] === value) ? "±" + numberText(value) + (unit ? " " + unit : "") : t.perPoint;
-  };
+  const uncertainties: string[] = [];
+  if (bars && points.length) {
+    for (const key of ["dx", "dy"] as const) {
+      const value = points[0][key];
+      if (value <= 0 || !points.every(p => p[key] === value)) continue;
+      const unit = key === "dx" ? xUnit : yUnit;
+      const symbol = key === "dx" ? "x" : ySymbol;
+      uncertainties.push("Δ" + symbol + " = ±" + numberText(value) + (unit ? " " + unit : ""));
+    }
+  }
+  const hasLegend = lines.length > 0 || uncertainties.length > 0;
   const fullX = xLabel + (xUnit ? " (" + xUnit + ")" : "");
   const fullY = yLabel + (yUnit ? " (" + yUnit + ")" : "");
+  const tickWidth = Math.max(0, ...(ya?.ticks.map(tick => tick.label.length) ?? [])) * 11;
+  const margin = Math.max(78, (fullY ? 68 : 30) + tickWidth);
+  const box = { left: margin, right: hasLegend ? 805 : 1200 - margin, top: title ? 120 : 68, bottom: 600 };
+  const width = box.right - box.left, height = box.bottom - box.top;
+  const px = (x: number) => box.left + xa!.position(x) * width;
+  const py = (y: number) => box.bottom - ya!.position(y) * height;
+  const legendHeight = lines.length * 85 + (uncertainties.length ? 26 + uncertainties.length * 27 : 0);
+  const legendTop = box.top + (height - legendHeight) / 2 + 17;
   return <svg ref={svgRef} xmlns="http://www.w3.org/2000/svg" width="1200" height="710"
-    viewBox="0 0 1200 710" role="img" aria-label={title || t.preview} font-family="Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif" fill={ink}>
+    viewBox="0 0 1200 710" role="img" font-weight="400" aria-label={title || t.preview} font-family="Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif" fill={ink}>
     <title>{title || t.preview}</title>
     <rect width="1200" height="710" fill="white" />
-    <text x="600" y="65" textAnchor="middle" fontWeight="700" fontSize={fitSize(title, 33, 1110)}>{title}</text>
+    <text x="600" y="65" text-anchor="middle" font-weight="700" font-size={fitSize(title, 33, 1110)}>{title}</text>
     {plotted ? <>
-      {xa.ticks.map(v => <g key={v}>
-        <path d={`M${px(v)} ${box.top}V${box.bottom}`} stroke="#e1e7ea" />
-        <text x={px(v)} y={box.bottom + 27} textAnchor="middle" fontSize="17">{tickText(v, xa.step)}</text>
-      </g>)}
-      {ya.ticks.map(v => <g key={v}>
-        <path d={`M${box.left} ${py(v)}H${box.right}`} stroke="#e1e7ea" />
-        <text x={box.left - 11} y={py(v) + 6} textAnchor="end" fontSize="17">{tickText(v, ya.step)}</text>
-      </g>)}
+      {xa.ticks.map(({position, label}) => {
+        const x = box.left + position * width;
+        return <g key={label}>
+          <path d={`M${x} ${box.top}V${box.bottom}`} stroke="#e1e7ea" />
+          <text x={x} y={box.bottom + 26} text-anchor="middle" font-size="17">{label}</text>
+        </g>;
+      })}
+      {ya.ticks.map(({position, label}) => {
+        const y = box.bottom - position * height;
+        return <g key={label}>
+          <path d={`M${box.left} ${y}H${box.right}`} stroke="#e1e7ea" />
+          <text x={box.left - 12} y={y + 5} text-anchor="end" font-size="17">{label}</text>
+        </g>;
+      })}
+      {ya.note && <text x={box.left} y={box.top - 11} font-size="16">{ya.note}</text>}
+      {xa.note && <text x={box.right} y={box.bottom + 50} text-anchor="end" font-size="16">{xa.note}</text>}
       <path d={`M${box.left} ${box.top}V${box.bottom}H${box.right}`} fill="none" stroke="#81949e" />
-      <text x="458" y="654" textAnchor="middle" fontSize={fitSize(fullX, 21, 680)}>{fullX}</text>
-      <text transform="translate(42 360) rotate(-90)" textAnchor="middle" fontSize={fitSize(fullY, 21, 460)}>{fullY}</text>
+      <text x={box.left + width / 2} y={box.bottom + (xa.note ? 79 : 61)} text-anchor="middle" font-size={fitSize(fullX, 21, width)}>{fullX}</text>
+      <text transform={`translate(${box.left - tickWidth - 31} ${box.top + height / 2}) rotate(-90)`} text-anchor="middle" font-size={fitSize(fullY, 21, height)}>{fullY}</text>
       <defs><clipPath id="ib-plot"><rect x={box.left - 4} y={box.top - 4} width={box.right - box.left + 8} height={box.bottom - box.top + 8} /></clipPath></defs>
-      <g clipPath="url(#ib-plot)">
+      <g clip-path="url(#ib-plot)">
         {sampled.map(({ samples, kind }) => {
           let path = "", move = true;
           for (const { x, y } of samples) {
@@ -101,35 +97,35 @@ export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit
             path += (move ? "M" : "L") + px(x) + " " + py(y);
             move = false;
           }
-          return <path key={kind} d={path} fill="none" stroke={styles[kind].color} strokeWidth="3.3" strokeDasharray={styles[kind].dash} />;
+          return <path key={kind} d={path} fill="none" stroke={styles[kind].color} stroke-width="3.3" stroke-dasharray={styles[kind].dash} />;
         })}
         {points.map((p, i) => {
           const x = px(p.x), y = py(p.y);
           const left = px(p.x - p.dx), right = px(p.x + p.dx), top = py(p.y + p.dy), bottom = py(p.y - p.dy);
           return <g key={i}>
-            {bars && p.dx > 0 && <path stroke={ink} strokeWidth="1.8" fill="none" d={`M${left} ${y}H${right} M${left} ${y-6}v12 M${right} ${y-6}v12`} />}
-            {bars && p.dy > 0 && <path stroke={ink} strokeWidth="1.8" fill="none" d={`M${x} ${top}V${bottom} M${x-6} ${top}h12 M${x-6} ${bottom}h12`} />}
+            {bars && p.dx > 0 && <path stroke={ink} stroke-width="1.8" fill="none" d={`M${left} ${y}H${right} M${left} ${y-6}v12 M${right} ${y-6}v12`} />}
+            {bars && p.dy > 0 && <path stroke={ink} stroke-width="1.8" fill="none" d={`M${x} ${top}V${bottom} M${x-6} ${top}h12 M${x-6} ${bottom}h12`} />}
             <circle cx={x} cy={y} r="4.1" />
           </g>;
         })}
       </g>
       {lines.map(({ curve, kind }, i) => {
-        const label = kind === "best" ? t.best + " · " + points.length + " " + t.points : t[kind];
+        const detail = kind === "best" ? points.length + " " + t.points : t.endpoints;
         const formula = ySymbol + " = " + equation(curve);
-        return <g key={kind} transform={`translate(850 ${188 + i * 100})`}>
-          <path d="M0 0h47" stroke={styles[kind].color} strokeWidth="3.5" strokeDasharray={styles[kind].dash} />
-          <text x="59" y="5" fontWeight="700" fontSize={fitSize(label, 18, 274)}>{label}</text>
-          <text x="59" y="38" fill={styles[kind].color} fontSize={fitSize(formula, 20, 270)}>{formula}</text>
+        return <g key={kind} transform={`translate(850 ${legendTop + i * 85})`}>
+          <path d="M0 0h47" stroke={styles[kind].color} stroke-width="3.5" stroke-dasharray={styles[kind].dash} />
+          <text x="59" y="5" font-size={fitSize(t[kind] + " · " + detail, 18, 274)}>
+            <tspan font-weight="600">{t[kind]}</tspan><tspan>{" · " + detail}</tspan>
+          </text>
+          <text x="59" y="34" fill={styles[kind].color} font-size={fitSize(formula, 20, 270)}>{formula}</text>
         </g>;
       })}
-      {bars && points.some(p => p.dx || p.dy) && <g transform={`translate(850 ${202 + lines.length * 100})`}>
-        <text fontSize="17.5" fontWeight="700">{t.uncertainty}</text>
-        {(["dx", "dy"] as const).map((key, i) => {
-          const label = (i ? "Δ" + ySymbol : "Δx") + " = " + uncertainty(key, i ? yUnit : xUnit);
-          return <text key={key} y={34 + 30*i} fontSize={fitSize(label, 17, 320)}>{label}</text>;
-        })}
+      {uncertainties.length > 0 && <g transform={`translate(850 ${legendTop + lines.length * 85})`}>
+        <text font-size="18" font-weight="600">{t.uncertainty}</text>
+        {uncertainties.map((label, i) =>
+          <text key={label} y={29 + 27*i} font-size={fitSize(label, 17, 320)}>{label}</text>)}
       </g>}
-    </> : <text x="600" y="355" textAnchor="middle" fontSize="25">{points.length ? t.range : t.empty}</text>}
+    </> : <text x="600" y="355" text-anchor="middle" font-size="25">{points.length ? t.range : t.empty}</text>}
   </svg>;
 }
 

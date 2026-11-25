@@ -1,6 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { endpointSlopes, example, fit, parseCell } from "./graph.ts";
+import { endpointSlopes, equation, example, fit, parseCell } from "./graph.ts";
+
+import { makeAxis } from "./axis.ts";
 
 const point = (x, y, dx = 0, dy = 0) => ({ x, y, dx, dy });
 function close(actual, expected) {
@@ -21,8 +23,8 @@ for (const [model, target, coefficients] of [
   });
 }
 
-test("spring example reproduces the three reference slopes in either row order", () => {
-  const points = example.map(([x,y]) => point(+x,+y,0.002,0.01)).reverse();
+test("endpoint method matches the reference experiment with reversed data", () => {
+  const points = [[.003,.49],[.004,.97],[.008,1.44],[.009,1.45],[.020,1.82]].map(([x,y]) => point(x,y,.002,.01)).reverse();
   const {min,max} = endpointSlopes(points);
   assert.deepEqual([fit(points, "linear").curve, min, max].map(line => line.coefficients[0].toFixed(2)), ["65.78","62.38","103.85"]);
   assert.deepEqual([min,max].map(line => line.coefficients[1].toFixed(3)), ["0.438","-0.039"]);
@@ -45,4 +47,34 @@ test("degenerate endpoints and fits return actionable errors", () => {
 test("measurement cells accept scientific notation and reject non-decimal inputs", () => {
   close(parseCell(" -2.1e-3 "), -.0021);
   for (const value of ["", "0x10", "NaN", "Infinity", "12 m", "1.2.3"]) assert.ok(Number.isNaN(parseCell(value)));
+});
+
+test("default measurements illustrate a 50 N/m spring with visible slope bounds", () => {
+  const p = example.map(([x,y]) => point(+x,+y,.001,.05));
+  const best = fit(p, "linear").curve;
+  assert.equal(equation(best), "50x + 0.01");
+  const bounds = endpointSlopes(p);
+  assert.ok(bounds.min.coefficients[0] < 50 && bounds.max.coefficients[0] > 50);
+});
+
+test("offset fits retain small differences in both axes across row orders", () => {
+  const p = [0,1,2,3].map(i => point(1e15 + i * .125, 1 + i));
+  for (const rows of [p, p.toReversed()]) {
+    const curve = fit(rows, "linear").curve;
+    assert.equal(equation(curve), "8(x − 1000000000000000) + 1");
+    for (const {x,y} of rows) close(curve.at(x), y);
+  }
+});
+
+test("axes cover constant, signed, microscopic, large and tightly clustered values", () => {
+  for (const [low, high] of [[0,0],[3,3],[-9,-2],[-1,1],[1e-15,5e-15],[-2e9,3e9],[1e15,1e15+.5],[-1e308,1e308]]) {
+    const axis = makeAxis(low, high, 5);
+    const labels = axis.ticks.map(t => t.label);
+    assert.equal(labels.length, new Set(labels).size);
+    assert.ok(axis.position(low) >= -1e-12 && axis.position(high) <= 1 + 1e-12);
+    assert.ok(axis.position(high) >= axis.position(low));
+  }
+  assert.equal(makeAxis(1e15,1e15+.5,5).note, "+1000000000000000");
+  assert.equal(makeAxis(1e-8,4e-8,5).note, "×10⁻⁸");
+  assert.equal(makeAxis(0,Infinity,5), null);
 });

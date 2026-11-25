@@ -17,7 +17,7 @@ export default function GraphTool({ lang }: { lang: Lang }) {
   const f = copy[figureLang];
   const [isExample, setIsExample] = useState(true);
   const [rows, setRows] = useState(() => example.map(([x, y]) => [x, y, "", ""]));
-  const [shared, setShared] = useState(["0.002", "0.01"]);
+  const [shared, setShared] = useState(["0.001", "0.05"]);
   const [custom, setCustom] = useState<Partial<Record<Field, string>>>({});
   const [model, setModel] = useState<Model | "none">("linear");
   const [bars, setBars] = useState(true);
@@ -41,6 +41,8 @@ export default function GraphTool({ lang }: { lang: Lang }) {
       if (i >= 2 && !row[i].trim() && (!Number.isFinite(value) || value < 0)) return t.inheritedError;
       if (!Number.isFinite(value)) return t.numeric;
       if (i >= 2 && value < 0) return t.unsigned;
+      if (i >= 2 && Number.isFinite(values[i-2]) &&
+          (!Number.isFinite(values[i-2] + value) || !Number.isFinite(values[i-2] - value))) return t.range;
       return "";
     });
     if (!messages.some(Boolean)) points.push({ x: values[0], y: values[1], dx: values[2], dy: values[3] });
@@ -102,7 +104,7 @@ export default function GraphTool({ lang }: { lang: Lang }) {
           </select>
         </label>
         <button class="ib-primary" onClick={save} disabled={!points.length || exporting}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4" /></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4" /></svg>
           {exporting ? t.exporting : t.download}
         </button>
       </div>
