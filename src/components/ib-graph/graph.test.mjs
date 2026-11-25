@@ -52,7 +52,7 @@ test("measurement cells accept scientific notation and reject non-decimal inputs
 test("default measurements illustrate a 50 N/m spring with visible slope bounds", () => {
   const p = example.map(([x,y]) => point(+x,+y,.001,.05));
   const best = fit(p, "linear").curve;
-  assert.equal(equation(best), "50x + 0.01");
+  assert.equal(equation(best, 3), "50.0x + 0.0100");
   const bounds = endpointSlopes(p);
   assert.ok(bounds.min.coefficients[0] < 50 && bounds.max.coefficients[0] > 50);
 });
@@ -61,7 +61,7 @@ test("offset fits retain small differences in both axes across row orders", () =
   const p = [0,1,2,3].map(i => point(1e15 + i * .125, 1 + i));
   for (const rows of [p, p.toReversed()]) {
     const curve = fit(rows, "linear").curve;
-    assert.equal(equation(curve), "8(x − 1000000000000000) + 1");
+    assert.equal(equation(curve, 2), "8.0(x − 1000000000000000) + 1.0");
     for (const {x,y} of rows) close(curve.at(x), y);
   }
 });
@@ -77,4 +77,16 @@ test("axes cover constant, signed, microscopic, large and tightly clustered valu
   assert.equal(makeAxis(1e15,1e15+.5,5).note, "+1000000000000000");
   assert.equal(makeAxis(1e-8,4e-8,5).note, "×10⁻⁸");
   assert.equal(makeAxis(0,Infinity,5), null);
+});
+
+test("equation precision preserves significant zeros, signs and powers of ten", () => {
+  const curve = { model: "quadratic", coefficients: [50, -0.003009, 0] };
+  assert.equal(equation(curve, 2), "5.0×10¹x² − 0.0030x + 0.0");
+  assert.equal(equation(curve, 4), "50.00x² − 0.003009x + 0.000");
+  for (const [model, expected] of [
+    ["linear", "1.20×10⁻⁹x − 2.00"],
+    ["exponential", "1.20×10⁻⁹ exp(−2.00x)"],
+    ["power", "1.20×10⁻⁹ x^(−2.00)"],
+    ["logarithmic", "1.20×10⁻⁹ ln(x) − 2.00"],
+  ]) assert.equal(equation({ model, coefficients: [1.2e-9, -2] }, 3), expected);
 });

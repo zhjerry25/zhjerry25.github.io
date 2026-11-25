@@ -98,14 +98,21 @@ export function endpointSlopes(points: Point[]): { min?: Curve; max?: Curve; err
 
 export const numberText = (n: number) => String(Number(n.toPrecision(5))).replace(/^-/, "−");
 
-export function equation({ model, origin, coefficients: [a, b, c] }: Curve) {
-  const term = (n: number) => (n < 0 ? " − " : " + ") + numberText(Math.abs(n));
+export function equation({ model, origin, coefficients: [a, b, c] }: Curve, significantFigures: number) {
+  const coefficient = (value: number) => {
+    let text = value.toPrecision(significantFigures);
+    // A trailing zero in a whole number is ambiguous without a decimal point.
+    if (/^-?\d+0$/.test(text)) text = value.toExponential(significantFigures - 1);
+    return text.replace(/^-/, "−").replace(/e([+-]?)(\d+)/, (_, sign, digits: string) =>
+      "×10" + (sign === "-" ? "⁻" : "") + [...digits].map(d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[Number(d)]).join(""));
+  };
+  const term = (n: number) => (n < 0 ? " − " : " + ") + coefficient(Math.abs(n));
   const x = origin ? "(x " + (origin < 0 ? "+ " : "− ") + String(Math.abs(origin)) + ")" : "x";
   switch (model) {
-    case "linear": return numberText(a) + x + term(b);
-    case "quadratic": return numberText(a) + x + "²" + term(b) + x + term(c);
-    case "exponential": return numberText(a) + " exp(" + numberText(b) + "x)";
-    case "power": return numberText(a) + " x^(" + numberText(b) + ")";
-    case "logarithmic": return numberText(a) + " ln(x)" + term(b);
+    case "linear": return coefficient(a) + x + term(b);
+    case "quadratic": return coefficient(a) + x + "²" + term(b) + x + term(c);
+    case "exponential": return coefficient(a) + " exp(" + coefficient(b) + "x)";
+    case "power": return coefficient(a) + " x^(" + coefficient(b) + ")";
+    case "logarithmic": return coefficient(a) + " ln(x)" + term(b);
   }
 }

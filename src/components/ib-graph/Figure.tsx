@@ -22,9 +22,10 @@ function fitSize(text: string, size: number, width: number) {
   return Math.min(size, width / (units || 1));
 }
 
-export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit, points, lines, styles, bars }: {
+export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit, points, lines, styles, bars, showUncertainties, significantFigures }: {
   svgRef: Ref<SVGSVGElement>; t: Labels; title: string; xLabel: string; yLabel: string; ySymbol: string;
   xUnit: string; yUnit: string; points: Point[]; lines: Line[]; styles: typeof defaultStyles; bars: boolean;
+  showUncertainties: boolean; significantFigures: number;
 }) {
   let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
   const showXRange = bars || lines.some(line => line.kind !== "best");
@@ -50,7 +51,7 @@ export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit
   const xa = makeAxis(xMin, xMax, 6), ya = makeAxis(yMin, yMax, 5);
   const plotted = points.length > 0 && xa && ya;
   const uncertainties: string[] = [];
-  if (bars && points.length) {
+  if (showUncertainties && points.length) {
     for (const key of ["dx", "dy"] as const) {
       const value = points[0][key];
       if (value <= 0 || !points.every(p => p[key] === value)) continue;
@@ -117,7 +118,7 @@ export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit
         })}
       </g>
       {lines.map(({ curve, kind }, i) => {
-        const formula = ySymbol + " = " + equation(curve);
+        const formula = ySymbol + " = " + equation(curve, significantFigures);
         return <g key={kind} transform={`translate(850 ${legendTop + i * 85})`}>
           <path d="M0 0h47" stroke={styles[kind].color} stroke-width="3.5" stroke-dasharray={dashPatterns[styles[kind].pattern]} />
           <text x="59" y="5" font-size="18" font-weight="600">{t[kind]}</text>

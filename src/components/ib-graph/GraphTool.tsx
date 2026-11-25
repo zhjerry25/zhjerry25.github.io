@@ -21,6 +21,8 @@ export default function GraphTool({ lang }: { lang: Lang }) {
   const [custom, setCustom] = useState<Partial<Record<Field, string>>>({});
   const [model, setModel] = useState<Model | "none">("linear");
   const [bars, setBars] = useState(true);
+  const [showUncertainties, setShowUncertainties] = useState(false);
+  const [significantFigures, setSignificantFigures] = useState(3);
   const [zoom, setZoom] = useState(false);
   const [bounds, setBounds] = useState(true);
   const [styles, setStyles] = useState(defaultStyles);
@@ -116,11 +118,22 @@ export default function GraphTool({ lang }: { lang: Lang }) {
       <div class={"ib-canvas" + (zoom ? " is-zoomed" : "")}>
       <Figure svgRef={svg} t={f} title={labels.title} xLabel={labels.xName} yLabel={labels.yName}
         ySymbol={isExample && custom.yName === undefined ? "F" : "y"} xUnit={labels.xUnit}
-        yUnit={labels.yUnit} points={points} lines={lines} styles={styles} bars={bars} />
+        yUnit={labels.yUnit} points={points} lines={lines} styles={styles} bars={bars}
+        showUncertainties={showUncertainties} significantFigures={significantFigures} />
       </div>
       {(result?.error || extremes.error || exportError) && <p class="ib-notice" role="status">
         {result?.error && t[result.error]} {extremes.error && t[extremes.error]} {exportError && t.exportError}
       </p>}
+      <div class="ib-legend-options">
+        <label class="ib-check"><input type="checkbox" checked={showUncertainties}
+          onChange={e => setShowUncertainties(e.currentTarget.checked)} />{t.showUncertainties}</label>
+        {lines.length > 0 && <label class="ib-language">{t.significantFigures}
+          <select aria-label={t.significantFigures} value={significantFigures}
+            onChange={e => setSignificantFigures(Number(e.currentTarget.value))}>
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+        </label>}
+      </div>
       {lines.length > 0 && <details class="ib-line-styles">
         <summary>{t.lineStyles}</summary>
         <datalist id="ib-palette">

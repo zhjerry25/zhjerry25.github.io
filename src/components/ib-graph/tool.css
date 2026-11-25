@@ -16,6 +16,8 @@
 .ib-tool button.ib-primary { display: inline-flex; align-items: center; gap: .45rem; color: white; background: var(--ib-green); border-color: var(--ib-green); padding-inline: .85rem; }
 .ib-tool button.ib-primary:hover { background: #244f23; }
 .ib-tool button:disabled { opacity: .55; cursor: default; }
+.ib-legend-options { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem 1.4rem; padding: .65rem 1rem; border-top: 1px solid var(--ib-border); }
+.ib-legend-options .ib-check { margin: 0; }
 .ib-line-styles { padding: .65rem 1rem; border-top: 1px solid var(--ib-border); font-size: .9rem; }
 .ib-line-styles summary { cursor: pointer; color: var(--ib-green); font-weight: 600; }
 .ib-line-row { display: grid; grid-template-columns: minmax(0, 1fr) 2.75rem 7rem; align-items: center; gap: .65rem; max-width: 23rem; margin-top: .5rem; }
