@@ -17,7 +17,7 @@ const appearanceSchema = z.object({
   titlePosition: z.enum(["canvas", "plot", ...positions]),
   positions: z.record(legendKey, z.enum(positions)),
   font, weight, size: z.literal(legendSizes),
-  typography: z.object({ title: typeStyle, xName: typeStyle, yName: typeStyle }),
+  typography: z.object({ title: typeStyle, axes: typeStyle }),
 });
 export type Appearance = z.infer<typeof appearanceSchema>;
 export type Typography = z.infer<typeof typeStyle>;
@@ -29,13 +29,13 @@ export type Preset = Appearance["preset"];
 const defaultType: Typography = { size: "auto", font: "auto", weight: "auto" };
 export const defaultAppearance: Appearance = {
   preset: "matplotlib", titlePosition: "canvas",
-  positions: { best: "right", min: "right", max: "right", uncertainty: "right", rSquared: "right" },
+  positions: { best: "topLeft", min: "topLeft", max: "topLeft", uncertainty: "topLeft", rSquared: "topLeft" },
   font: "auto", size: 18, weight: "auto",
-  typography: { title: defaultType, xName: defaultType, yName: defaultType },
+  typography: { title: defaultType, axes: defaultType },
 };
 
 const projectSchema = z.object({
-  format: z.literal("ib-graph"), version: z.literal(1),
+  format: z.literal("ib-graph"), version: z.literal(2),
   figureLang: z.enum(["en","zh"]), isExample: z.boolean(),
   rows: z.array(z.array(z.string()).length(4)).min(1), shared: z.array(z.string()).length(2),
   custom: z.partialRecord(textField, z.string()), model: z.enum(["none", ...models]),
@@ -49,12 +49,29 @@ const projectSchema = z.object({
 });
 export type Project = z.infer<typeof projectSchema>;
 export function newProject(figureLang: Project["figureLang"]): Project {
-  return { format: "ib-graph", version: 1, figureLang, isExample: true,
+  return { format: "ib-graph", version: 2, figureLang, isExample: true,
     rows: example.map(([x,y]) => [x,y,"",""]), shared: ["0.001","0.05"], custom: {}, model: "linear",
     bars: true, bounds: true, showScore: true, showUncertainties: false, significantFigures: 3,
     appearance: defaultAppearance, grids: { matplotlib: true, origin: false }, customStyles: {},
   };
 }
+const legacyProject = projectSchema.extend({
+  version: z.literal(1),
+  appearance: appearanceSchema.extend({
+    typography: z.object({ title: typeStyle, xName: typeStyle, yName: typeStyle }),
+  }),
+});
+
 export function readProject(text: string): Project {
-  return projectSchema.parse(JSON.parse(text));
+  const data = JSON.parse(text);
+  if (data?.version !== 1) return projectSchema.parse(data);
+  const old = legacyProject.parse(data);
+  const { title, xName, yName } = old.appearance.typography;
+  // Keep explicit settings from either axis; prefer x when both were set.
+  const axes = {
+    size: xName.size === "auto" ? yName.size : xName.size,
+    font: xName.font === "auto" ? yName.font : xName.font,
+    weight: xName.weight === "auto" ? yName.weight : xName.weight,
+  };
+  return { ...old, version: 2, appearance: { ...old.appearance, typography: { title, axes } } };
 }

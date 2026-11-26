@@ -1,6 +1,9 @@
+import { memo } from "preact/compat";
+import { useMemo } from "preact/hooks";
 import type { Ref } from "preact";
-import { Legend, fitSize, fonts, layoutLegend, type Entry } from "./Legend";
-import type { Appearance, Typography } from "./project";
+import { Legend, fitSize, fonts, layoutLegend, presetType, type Entry } from "./Legend";
+import { UnitText } from "./UnitText";
+import type { Appearance } from "./project";
 import { makeAxis } from "./axis";
 import type { Labels } from "./copy";
 import { equation, numberText, type Curve, type Point } from "./graph";
@@ -18,11 +21,7 @@ export const defaultStyles: Record<Line["kind"], LineStyle> = {
   min: { color: "#108477", pattern: "longDash" },
   max: { color: "#bc551d", pattern: "shortDash" },
 };
-export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit, points, lines, styles, bars, showUncertainties, significantFigures, appearance, score, showGrid }: {
-  svgRef: Ref<SVGSVGElement>; t: Labels; title: string; xLabel: string; yLabel: string; ySymbol: string;
-  xUnit: string; yUnit: string; points: Point[]; lines: Line[]; styles: typeof defaultStyles; bars: boolean;
-  showUncertainties: boolean; significantFigures: number; appearance: Appearance; showGrid: boolean; score: number | null | undefined;
-}) {
+function preparePlot(points: Point[], lines: Line[], bars: boolean) {
   let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
   const showXRange = bars || lines.some(line => line.kind !== "best");
   for (const p of points) {
@@ -45,6 +44,16 @@ export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit
     return { ...line, samples };
   });
   const xa = makeAxis(xMin, xMax, 6), ya = makeAxis(yMin, yMax, 5);
+  return { xa, ya, sampled };
+}
+
+export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit, points, lines, styles, bars, showUncertainties, significantFigures, appearance, score, showGrid }: {
+  svgRef: Ref<SVGSVGElement>; t: Labels; title: string; xLabel: string; yLabel: string; ySymbol: string;
+  xUnit: string; yUnit: string; points: Point[]; lines: Line[]; styles: typeof defaultStyles; bars: boolean;
+  showUncertainties: boolean; significantFigures: number; appearance: Appearance; showGrid: boolean; score: number | null | undefined;
+}) {
+  const plot = useMemo(() => preparePlot(points, lines, bars), [points, lines, bars]);
+  const { xa, ya } = plot;
   const plotted = points.length > 0 && xa && ya;
   const uncertainties: string[] = [];
   if (showUncertainties && points.length) {
@@ -61,14 +70,15 @@ export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit
   const lineWidth = origin ? 1.9 : 3.3;
   const family = origin ? "serif" : "sans";
   const topTitle = appearance.titlePosition === "canvas" || appearance.titlePosition === "plot";
-  const resolveType = (style: Typography, size: number, weight: string) => ({
-    size: style.size === "auto" ? size : style.size,
-    weight: style.weight === "auto" ? weight : style.weight,
-    font: fonts[style.font === "auto" ? family : style.font],
-  });
-  const titleStyle = resolveType(appearance.typography.title, topTitle ? (origin ? 31 : 33) : appearance.size, origin || !topTitle ? "600" : "700");
-  const xStyle = resolveType(appearance.typography.xName, 21, "400");
-  const yStyle = resolveType(appearance.typography.yName, 21, "400");
+  function resolveType(key: "title" | "axes") {
+    const style = appearance.typography[key], defaults = presetType(appearance, key);
+    return {
+      size: style.size === "auto" ? defaults.size : style.size,
+      weight: style.weight === "auto" ? defaults.weight : style.weight,
+      font: fonts[style.font === "auto" ? defaults.font : style.font],
+    };
+  }
+  const titleStyle = resolveType("title"), axisStyle = resolveType("axes");
   const entries: Entry[] = [];
   if (title && appearance.titlePosition !== "plot" && appearance.titlePosition !== "canvas") {
     entries.push({ key: "title", position: appearance.titlePosition, label: title, values: [], textStyle: titleStyle });
@@ -90,11 +100,9 @@ export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit
   const fullX = xLabel + (xUnit ? " (" + xUnit + ")" : "");
   const fullY = yLabel + (yUnit ? " (" + yUnit + ")" : "");
   const tickWidth = Math.max(0, ...(ya?.ticks.map(tick => tick.label.length) ?? [])) * 11;
-  const margin = Math.max(78, (fullY ? 68 + Math.max(0, yStyle.size - 21) : 30) + tickWidth);
+  const margin = Math.max(78, (fullY ? 68 + Math.max(0, axisStyle.size - 21) : 30) + tickWidth);
   const box = layoutLegend(entries, appearance.size, margin, title && topTitle ? 120 : 68);
   const width = box.right - box.left, height = box.bottom - box.top;
-  const px = (x: number) => box.left + xa!.position(x) * width;
-  const py = (y: number) => box.bottom - ya!.position(y) * height;
   const abovePlot = appearance.titlePosition === "plot";
   const titleX = abovePlot ? box.left + width / 2 : 600;
   return <svg ref={svgRef} xmlns="http://www.w3.org/2000/svg" width="1200" height={box.canvasHeight}
@@ -136,10 +144,26 @@ export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit
       {xa.note && <text x={box.right} y={box.bottom + 50} text-anchor="end" font-size="16">{xa.note}</text>}
       {origin ? <rect x={box.left} y={box.top} width={width} height={height} fill="none" stroke={ink} stroke-width="1.5" />
         : <path d={`M${box.left} ${box.top}V${box.bottom}H${box.right}`} fill="none" stroke="#81949e" />}
-      <text x={box.left + width / 2} y={box.bottom + (xa.note ? 79 : 61) + Math.max(0, xStyle.size - 21) * .7} text-anchor="middle" font-family={xStyle.font} font-weight={xStyle.weight} font-size={fitSize(fullX, xStyle.size, width)}>{fullX}</text>
-      <text transform={`translate(${box.left - tickWidth - 31 - Math.max(0, yStyle.size - 21) * .4} ${box.top + height / 2}) rotate(-90)`} text-anchor="middle" font-family={yStyle.font} font-weight={yStyle.weight} font-size={fitSize(fullY, yStyle.size, height)}>{fullY}</text>
+      <text x={box.left + width / 2} y={box.bottom + (xa.note ? 79 : 61) + Math.max(0, axisStyle.size - 21) * .7} text-anchor="middle" font-family={axisStyle.font} font-weight={axisStyle.weight} font-size={fitSize(fullX, axisStyle.size, width)}>{xLabel}{xUnit && <> (<UnitText value={xUnit} />)</>}</text>
+      <text transform={`translate(${box.left - tickWidth - 31 - Math.max(0, axisStyle.size - 21) * .4} ${box.top + height / 2}) rotate(-90)`} text-anchor="middle" font-family={axisStyle.font} font-weight={axisStyle.weight} font-size={fitSize(fullY, axisStyle.size, height)}>{yLabel}{yUnit && <> (<UnitText value={yUnit} />)</>}</text>
       <defs><clipPath id="ib-plot"><rect x={box.left - 4} y={box.top - 4} width={box.right - box.left + 8} height={box.bottom - box.top + 8} /></clipPath></defs>
-      <g clip-path="url(#ib-plot)">
+      <DataMarks plot={plot} points={points} styles={styles} bars={bars} origin={origin} ink={ink} lineWidth={lineWidth}
+        left={box.left} bottom={box.bottom} width={width} height={height} />
+      <Legend layout={box} appearance={appearance} ink={ink} lineWidth={lineWidth}
+        font={fonts[appearance.font === "auto" ? family : appearance.font]} />
+    </> : <text x="600" y="355" text-anchor="middle" font-size="25">{points.length ? t.range : t.empty}</text>}
+  </svg>;
+}
+
+const DataMarks = memo(function DataMarks({ plot, points, styles, bars, origin, ink, lineWidth, left, bottom, width, height }: {
+  plot: ReturnType<typeof preparePlot>; points: Point[]; styles: typeof defaultStyles; bars: boolean; origin: boolean;
+  ink: string; lineWidth: number; left: number; bottom: number; width: number; height: number;
+}) {
+  const { xa, ya, sampled } = plot;
+  if (!xa || !ya) return null;
+  const px = (x: number) => left + xa.position(x) * width;
+  const py = (y: number) => bottom - ya.position(y) * height;
+  return <g clip-path="url(#ib-plot)">
         {sampled.map(({ samples, kind }) => {
           let path = "", move = true;
           for (const { x, y } of samples) {
@@ -158,12 +182,8 @@ export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit
             {origin ? <rect x={x-3} y={y-3} width="6" height="6" /> : <circle cx={x} cy={y} r="4.1" />}
           </g>;
         })}
-      </g>
-      <Legend layout={box} appearance={appearance} ink={ink} lineWidth={lineWidth}
-        font={fonts[appearance.font === "auto" ? family : appearance.font]} />
-    </> : <text x="600" y="355" text-anchor="middle" font-size="25">{points.length ? t.range : t.empty}</text>}
-  </svg>;
-}
+      </g>;
+});
 
 export async function downloadPng(svg: SVGSVGElement, title: string) {
   const source = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svg)], { type: "image/svg+xml;charset=utf-8" }));

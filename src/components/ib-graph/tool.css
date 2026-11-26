@@ -71,3 +71,7 @@
 
 .ib-project-files { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: .85rem; }
 .ib-project-files span { color: #566159; font-size: .875rem; }
+
+.ib-unit-help { color: #455049; font-size: .875rem; }
+.ib-unit-help summary { color: var(--ib-green); cursor: pointer; }
+.ib-unit-help p { margin-top: .4rem; }

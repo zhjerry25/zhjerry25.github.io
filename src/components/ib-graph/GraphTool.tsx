@@ -1,15 +1,12 @@
-import { useLayoutEffect, useRef, useState } from "preact/hooks";
-import type { JSX } from "preact";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
+import { MeasurementGrid, readMeasurements, columns, emptyRow } from "./MeasurementGrid";
 import type { Lang } from "../../i18n/utils";
 import { copy } from "./copy";
 import { Figure, defaultStyles, downloadPng, type LineStyle } from "./Figure";
 import { AdvancedSettings } from "./Legend";
 import { draftKey, newProject, readProject, models, type Project, type Field, type Preset, type LegendKey } from "./project";
-import { rSquared, endpointSlopes, fit, parseCell, type Point } from "./graph";
+import { rSquared, endpointSlopes, fit } from "./graph";
 import "./tool.css";
-
-const columns = ["x", "y", "Δx", "Δy"];
-const emptyRow = () => ["", "", "", ""];
 
 export default function GraphTool({ lang }: { lang: Lang }) {
   const t = copy[lang];
@@ -17,8 +14,9 @@ export default function GraphTool({ lang }: { lang: Lang }) {
   const { figureLang, isExample, rows, shared, custom, model, bars, showUncertainties, significantFigures,
     bounds, appearance, grids, showScore, customStyles } = project;
   const f = copy[figureLang];
+  const [resetCount, setResetCount] = useState(0);
   const [zoom, setZoom] = useState(false);
-  const [cacheStatus, setCacheStatus] = useState<"draftHint" | "draftSaved" | "draftRestored" | "cacheError" | "badDraft">("draftHint");
+  const [cacheStatus, setCacheStatus] = useState<"draftHint" | "draftPending" | "draftSaved" | "draftRestored" | "cacheError" | "badDraft">("draftHint");
   const [fileStatus, setFileStatus] = useState<"fileOpened" | "invalidFile" | "saveFailed" | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const openRequest = useRef(0);
@@ -41,10 +39,25 @@ export default function GraphTool({ lang }: { lang: Lang }) {
     }
     if (project === restored.current) return;
     restored.current = null;
-    try {
-      localStorage.setItem(draftKey, JSON.stringify(project));
-      setCacheStatus("draftSaved");
-    } catch { setCacheStatus("cacheError"); }
+    let pending = true;
+    const flush = () => {
+      if (!pending) return;
+      pending = false;
+      try {
+        localStorage.setItem(draftKey, JSON.stringify(project));
+        setCacheStatus("draftSaved");
+      } catch { setCacheStatus("cacheError"); }
+    };
+    const onVisibility = () => { if (document.hidden) flush(); };
+    setCacheStatus("draftPending");
+    const timer = window.setTimeout(flush, 250);
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("pagehide", flush);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [project]);
 
   function edit(changes: Partial<Project>) {
@@ -72,11 +85,14 @@ export default function GraphTool({ lang }: { lang: Lang }) {
       setFileStatus("fileOpened");
     } catch { if (request === openRequest.current) setFileStatus("invalidFile"); }
   }
-  const styles = { ...defaultStyles };
-  const originColors = { best: "#222222", min: "#25579d", max: "#b63632" };
-  for (const kind of ["best", "min", "max"] as const) {
-    styles[kind] = { ...defaultStyles[kind], color: appearance.preset === "origin" ? originColors[kind] : defaultStyles[kind].color, ...customStyles[kind] };
-  }
+  const styles = useMemo(() => {
+    const styles = { ...defaultStyles };
+    const originColors = { best: "#222222", min: "#25579d", max: "#b63632" };
+    for (const kind of ["best", "min", "max"] as const) {
+      styles[kind] = { ...defaultStyles[kind], color: appearance.preset === "origin" ? originColors[kind] : defaultStyles[kind].color, ...customStyles[kind] };
+    }
+    return styles;
+  }, [appearance.preset, customStyles]);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState(false);
   const svg = useRef<SVGSVGElement>(null);
@@ -85,32 +101,18 @@ export default function GraphTool({ lang }: { lang: Lang }) {
     xName: isExample ? f.sampleX : "x", yName: isExample ? f.sampleY : "y",
     xUnit: isExample ? "m" : "", yUnit: isExample ? "N" : "", ...custom,
   };
-  const sharedValues = shared.map(v => v.trim() ? parseCell(v) : 0);
-  const points: Point[] = [];
-  const errors = rows.map(row => {
-    if (row.every(cell => !cell.trim())) return [];
-    const values = row.map((cell, i) => i >= 2 && !cell.trim() ? sharedValues[i-2] : parseCell(cell));
-    const messages = values.map((value, i) => {
-      if (i < 2 && !row[i].trim()) return t.required;
-      if (i >= 2 && !row[i].trim() && (!Number.isFinite(value) || value < 0)) return t.inheritedError;
-      if (!Number.isFinite(value)) return t.numeric;
-      if (i >= 2 && value < 0) return t.unsigned;
-      if (i >= 2 && Number.isFinite(values[i-2]) &&
-          (!Number.isFinite(values[i-2] + value) || !Number.isFinite(values[i-2] - value))) return t.range;
-      return "";
-    });
-    if (!messages.some(Boolean)) points.push({ x: values[0], y: values[1], dx: values[2], dy: values[3] });
-    return messages;
-  });
-  const result = model !== "none" && points.length ? fit(points, model) : undefined;
-  const extremes = model === "linear" && bounds && result?.curve ? endpointSlopes(points) : {};
-  const lines = [
-    ...(result?.curve ? [{ kind: "best" as const, curve: result.curve }] : []),
-    ...(extremes.min ? [{ kind: "min" as const, curve: extremes.min }] : []),
-    ...(extremes.max ? [{ kind: "max" as const, curve: extremes.max }] : []),
-  ];
-
-  const score = showScore && result?.curve ? rSquared(points, result.curve) : undefined;
+  const { sharedValues, points, errors } = useMemo(() => readMeasurements(rows, shared, t), [rows, shared, t]);
+  const { result, extremes, lines } = useMemo(() => {
+    const result = model !== "none" && points.length ? fit(points, model) : undefined;
+    const extremes = model === "linear" && bounds && result?.curve ? endpointSlopes(points) : {};
+    const lines = [
+      ...(result?.curve ? [{ kind: "best" as const, curve: result.curve }] : []),
+      ...(extremes.min ? [{ kind: "min" as const, curve: extremes.min }] : []),
+      ...(extremes.max ? [{ kind: "max" as const, curve: extremes.max }] : []),
+    ];
+    return { result, extremes, lines };
+  }, [model, points, bounds]);
+  const score = useMemo(() => showScore && result?.curve ? rSquared(points, result.curve) : undefined, [result, points, showScore]);
   const legendKeys: LegendKey[] = lines.map(line => line.kind);
   if (score !== undefined) legendKeys.push("rSquared");
   if (showUncertainties) legendKeys.push("uncertainty");
@@ -118,21 +120,21 @@ export default function GraphTool({ lang }: { lang: Lang }) {
   function changeStyle(kind: keyof typeof defaultStyles, change: Partial<LineStyle>) {
     edit({ customStyles: { ...customStyles, [kind]: { ...customStyles[kind], ...change } } });
   }
-  function updateCell(row: number, column: number, value: string) {
-    edit({ rows: rows.map((cells, i) => i === row
-      ? cells.map((cell, j) => j === column ? value : cell) : cells) });
-  }
-  function paste(event: JSX.TargetedClipboardEvent<HTMLInputElement>, row: number, col: number) {
-    const text = event.clipboardData?.getData("text/plain") ?? "";
-    if (!/[\t\n\r]/.test(text)) return;
-    event.preventDefault();
-    const block = text.replace(/\r\n?/g, "\n").replace(/\n+$/, "").split("\n").map(line => line.split("\t"));
-    const next = rows.map(cells => [...cells]);
-    block.forEach((cells, i) => {
-      const target = next[row + i] ?? (next[row + i] = emptyRow());
-      cells.slice(0, 4 - col).forEach((value, j) => { target[col + j] = value.trim(); });
-    });
-    edit({ rows: next });
+  const changeRows = useCallback((rows: string[][]) => setProject(previous => ({ ...previous, rows })), []);
+  function resetAll() {
+    if (!window.confirm(t.confirmReset)) return;
+    ++openRequest.current;
+    const initial = newProject(lang);
+    restored.current = initial;
+    setProject(initial);
+    setZoom(false);
+    setFileStatus(null);
+    setExportError(false);
+    setResetCount(n => n + 1);
+    try {
+      localStorage.removeItem(draftKey);
+      setCacheStatus("draftHint");
+    } catch { setCacheStatus("cacheError"); }
   }
   function startBlank() {
     edit({ isExample: false, rows: [emptyRow()], shared: ["", ""], custom: {}, customStyles: {} });
@@ -151,7 +153,7 @@ export default function GraphTool({ lang }: { lang: Lang }) {
     return <label class="ib-field">{t[key]}<input value={labels[key]}
       onInput={e => edit({ custom: { ...custom, [key]: e.currentTarget.value } })} /></label>;
   }
-  return <div class="ib-tool">
+  return <div class="ib-tool" key={resetCount}>
     <section class="ib-preview" aria-label={t.preview}>
       <div class="ib-toolbar">
         <h2>{t.preview}</h2>
@@ -216,6 +218,7 @@ export default function GraphTool({ lang }: { lang: Lang }) {
     <div class="ib-project-files">
       <button type="button" onClick={saveProject}>{t.saveProject}</button>
       <button type="button" onClick={() => fileInput.current?.click()}>{t.openProject}</button>
+      <button type="button" onClick={resetAll}>{t.resetAll}</button>
       <input hidden type="file" ref={fileInput} accept=".json,application/json" onChange={e => {
         const file = e.currentTarget.files?.[0];
         e.currentTarget.value = "";
@@ -227,20 +230,7 @@ export default function GraphTool({ lang }: { lang: Lang }) {
       <section class="ib-panel">
         <h2>{t.data}</h2>
         <p class="ib-help">{t.hint}</p>
-        <table class="ib-grid"><thead><tr><th scope="col">#</th>{columns.map(c => <th scope="col" key={c}>{c}</th>)}<th scope="col"><span class="sr-only">{t.remove}</span></th></tr></thead>
-          <tbody>{rows.map((row, i) => <tr key={i}>
-            <th scope="row">{i + 1}</th>
-            {row.map((cell, j) => <td key={j}>
-              <input aria-label={columns[j] + " · " + (i+1)} value={cell} inputMode="text" autoComplete="off"
-                placeholder={j >= 2 ? (shared[j-2] || "0") : "—"} aria-invalid={!!errors[i][j]}
-                aria-describedby={errors[i][j] ? `ib-error-${i}-${j}` : undefined}
-                onInput={e => updateCell(i, j, e.currentTarget.value)} onPaste={e => paste(e, i, j)} />
-              {errors[i][j] && <small id={`ib-error-${i}-${j}`}>{errors[i][j]}</small>}
-            </td>)}
-            <td><button class="ib-delete" aria-label={t.remove + " " + (i+1)} onClick={() =>
-              edit({ rows: rows.length === 1 ? [emptyRow()] : rows.filter((_, n) => n !== i) })}>×</button></td>
-          </tr>)}</tbody>
-        </table>
+        <MeasurementGrid rows={rows} shared={shared} errors={errors} t={t} onRows={changeRows} />
         <div class="ib-actions">
           <button onClick={() => edit({ rows: [...rows, emptyRow()] })}>＋ {t.add}</button>
           <button class="ib-text-button" onClick={startBlank}>{t.blank}</button>
@@ -259,6 +249,10 @@ export default function GraphTool({ lang }: { lang: Lang }) {
         <div class="ib-fields">{field("title")}
           <div class="ib-axis">{field("xName")}{field("xUnit")}</div>
           <div class="ib-axis">{field("yName")}{field("yUnit")}</div>
+          <details class="ib-unit-help"><summary>{t.unitHelp}</summary>
+            <p>{t.unitSyntax}</p>
+            <p><code>m^2</code> → m² · <code>{"m s^{-2}"}</code> → m s⁻² · <code>H_2O</code> → H₂O</p>
+          </details>
         </div>
         <div class="ib-section"><h3>{t.options}</h3>
           <label class="ib-field">{t.model}<select aria-label={t.model} value={model} onChange={e => edit({ model: e.currentTarget.value as typeof model })}>
