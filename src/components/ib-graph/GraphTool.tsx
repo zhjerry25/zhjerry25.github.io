@@ -3,7 +3,8 @@ import type { JSX } from "preact";
 import type { Lang } from "../../i18n/utils";
 import { copy } from "./copy";
 import { Figure, defaultStyles, downloadPng, type LineStyle } from "./Figure";
-import { endpointSlopes, example, fit, parseCell, type Model, type Point } from "./graph";
+import { AdvancedSettings, defaultAppearance, type Preset, type LegendKey } from "./Legend";
+import { rSquared, endpointSlopes, example, fit, parseCell, type Model, type Point } from "./graph";
 import "./tool.css";
 
 const columns = ["x", "y", "Δx", "Δy"];
@@ -25,7 +26,15 @@ export default function GraphTool({ lang }: { lang: Lang }) {
   const [significantFigures, setSignificantFigures] = useState(3);
   const [zoom, setZoom] = useState(false);
   const [bounds, setBounds] = useState(true);
-  const [styles, setStyles] = useState(defaultStyles);
+  const [appearance, setAppearance] = useState(defaultAppearance);
+  const [grids, setGrids] = useState({ matplotlib: true, origin: false });
+  const [showScore, setShowScore] = useState(true);
+  const [customStyles, setCustomStyles] = useState<Partial<Record<keyof typeof defaultStyles, Partial<LineStyle>>>>({});
+  const styles = { ...defaultStyles };
+  const originColors = { best: "#222222", min: "#25579d", max: "#b63632" };
+  for (const kind of ["best", "min", "max"] as const) {
+    styles[kind] = { ...defaultStyles[kind], color: appearance.preset === "origin" ? originColors[kind] : defaultStyles[kind].color, ...customStyles[kind] };
+  }
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState(false);
   const svg = useRef<SVGSVGElement>(null);
@@ -59,8 +68,13 @@ export default function GraphTool({ lang }: { lang: Lang }) {
     ...(extremes.max ? [{ kind: "max" as const, curve: extremes.max }] : []),
   ];
 
+  const score = showScore && result?.curve ? rSquared(points, result.curve) : undefined;
+  const legendKeys: LegendKey[] = lines.map(line => line.kind);
+  if (score !== undefined) legendKeys.push("rSquared");
+  if (showUncertainties) legendKeys.push("uncertainty");
+
   function changeStyle(kind: keyof typeof defaultStyles, change: Partial<LineStyle>) {
-    setStyles(previous => ({ ...previous, [kind]: { ...previous[kind], ...change } }));
+    setCustomStyles(previous => ({ ...previous, [kind]: { ...previous[kind], ...change } }));
   }
   function updateCell(row: number, column: number, value: string) {
     setRows(previous => previous.map((cells, i) => i === row
@@ -85,7 +99,7 @@ export default function GraphTool({ lang }: { lang: Lang }) {
     setRows([emptyRow()]);
     setShared(["", ""]);
     setCustom({});
-    setStyles(defaultStyles);
+    setCustomStyles({});
     setExportError(false);
   }
   async function save() {
@@ -105,6 +119,11 @@ export default function GraphTool({ lang }: { lang: Lang }) {
       <div class="ib-toolbar">
         <h2>{t.preview}</h2>
         <button class="ib-zoom" aria-pressed={zoom} onClick={() => setZoom(!zoom)}>{zoom ? t.fitWidth : t.zoom}</button>
+        <label class="ib-language">{t.preset}
+          <select aria-label={t.preset} value={appearance.preset} onChange={e => setAppearance({ ...appearance, preset: e.currentTarget.value as Preset })}>
+            <option value="matplotlib">Matplotlib</option><option value="origin">Origin</option>
+          </select>
+        </label>
         <label class="ib-language">{t.lang}
           <select aria-label={t.lang} value={figureLang} onChange={e => setFigureLang(e.currentTarget.value as Lang)}>
             <option value="zh">中文</option><option value="en">English</option>
@@ -119,14 +138,18 @@ export default function GraphTool({ lang }: { lang: Lang }) {
       <Figure svgRef={svg} t={f} title={labels.title} xLabel={labels.xName} yLabel={labels.yName}
         ySymbol={isExample && custom.yName === undefined ? "F" : "y"} xUnit={labels.xUnit}
         yUnit={labels.yUnit} points={points} lines={lines} styles={styles} bars={bars}
-        showUncertainties={showUncertainties} significantFigures={significantFigures} />
+        showUncertainties={showUncertainties} significantFigures={significantFigures} appearance={appearance} score={score} showGrid={grids[appearance.preset]} />
       </div>
       {(result?.error || extremes.error || exportError) && <p class="ib-notice" role="status">
         {result?.error && t[result.error]} {extremes.error && t[extremes.error]} {exportError && t.exportError}
       </p>}
       <div class="ib-legend-options">
+        <label class="ib-check"><input type="checkbox" checked={grids[appearance.preset]}
+          onChange={e => setGrids({ ...grids, [appearance.preset]: e.currentTarget.checked })} />{t.showGrid}</label>
         <label class="ib-check"><input type="checkbox" checked={showUncertainties}
           onChange={e => setShowUncertainties(e.currentTarget.checked)} />{t.showUncertainties}</label>
+        {result?.curve && <label class="ib-check" title={t.scoreHint}><input type="checkbox" checked={showScore}
+          onChange={e => setShowScore(e.currentTarget.checked)} />{t.showScore}</label>}
         {lines.length > 0 && <label class="ib-language">{t.significantFigures}
           <select aria-label={t.significantFigures} value={significantFigures}
             onChange={e => setSignificantFigures(Number(e.currentTarget.value))}>
@@ -151,6 +174,7 @@ export default function GraphTool({ lang }: { lang: Lang }) {
           </select>
         </div>)}
       </details>}
+      <AdvancedSettings t={t} value={appearance} onChange={setAppearance} keys={legendKeys} />
     </section>
     <div class="ib-editors">
       <section class="ib-panel">

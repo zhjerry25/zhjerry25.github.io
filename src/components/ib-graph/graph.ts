@@ -116,3 +116,19 @@ export function equation({ model, origin, coefficients: [a, b, c] }: Curve, sign
     case "logarithmic": return coefficient(a) + " ln(x)" + term(b);
   }
 }
+
+// Score predictions on the displayed y scale, including log-transformed fits.
+// Scale deviations before squaring to avoid overflow and underflow.
+export function rSquared(points: Point[], curve: Curve): number | null {
+  if (points.length < 2) return null;
+  const base = points[0].y;
+  const deviations = points.map(p => p.y - base);
+  const scale = deviations.reduce((max, d) => Math.max(max, Math.abs(d)), 0);
+  if (!scale || !Number.isFinite(scale)) return null;
+  const normalized = deviations.map(d => d / scale);
+  const mean = normalized.reduce((sum, d) => sum + d / points.length, 0);
+  const total = normalized.reduce((sum, d) => sum + (d - mean) ** 2, 0);
+  const residual = points.reduce((sum, p) => sum + ((p.y - curve.at(p.x)) / scale) ** 2, 0);
+  const score = 1 - residual / total;
+  return Number.isFinite(score) ? score : null;
+}

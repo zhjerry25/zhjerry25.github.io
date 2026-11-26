@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { endpointSlopes, equation, example, fit, parseCell } from "./graph.ts";
+import { endpointSlopes, equation, example, fit, parseCell, rSquared } from "./graph.ts";
 
 import { makeAxis } from "./axis.ts";
 
@@ -89,4 +89,17 @@ test("equation precision preserves significant zeros, signs and powers of ten", 
     ["power", "1.20×10⁻⁹ x^(−2.00)"],
     ["logarithmic", "1.20×10⁻⁹ ln(x) − 2.00"],
   ]) assert.equal(equation({ model, coefficients: [1.2e-9, -2] }, 3), expected);
+});
+
+test("R² uses unrounded predictions on the original response scale", () => {
+  const p = [point(1,1),point(2,2),point(3,4)];
+  close(rSquared(p, fit(p, "linear").curve), 27/28);
+  close(rSquared(p, fit(p, "exponential").curve), 1);
+  const noisy = [point(1,1), point(2,2), point(3,8)];
+  const curve = fit(noisy, "exponential").curve;
+  const mean = 11/3;
+  const residual = noisy.reduce((sum, {x,y}) => sum + (y-curve.at(x))**2, 0);
+  close(rSquared(noisy, curve), 1 - residual / noisy.reduce((sum,p) => sum + (p.y-mean)**2, 0));
+  assert.ok(rSquared(p, { at: () => 9 }) < 0);
+  assert.equal(rSquared([point(1,7),point(2,7)], { at: () => 7 }), null);
 });

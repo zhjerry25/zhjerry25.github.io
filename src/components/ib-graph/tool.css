@@ -62,3 +62,9 @@
   .ib-grid th:first-child, .ib-grid th:last-child { width: 1.5rem; }
   .ib-tool input:not([type=checkbox]) { padding-inline: .32rem; font-size: 1rem; }
 }
+
+.ib-advanced { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: .6rem .85rem; margin: .9rem 0 .45rem; }
+.ib-advanced legend { padding: 0 0 .45rem; font-weight: 600; }
+@media (max-width: 540px) {
+  .ib-toolbar .ib-primary { grid-column: 1 / -1; justify-self: end; }
+}
