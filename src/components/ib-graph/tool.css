@@ -77,7 +77,4 @@
 .ib-unit-help p { margin-top: .4rem; }
 
 .ib-symbol-hint { color: #566159; font-size: .875rem; }
-.ib-tool .ib-restore { justify-self: start; min-height: auto; padding: .12rem 0; border: 0; color: var(--ib-green); background: transparent; font-size: .82rem; }
-.ib-tool .ib-restore:hover { text-decoration: underline; }
-.ib-line-row .ib-restore { grid-column: 2 / -1; }
 .ib-axis { align-items: start; }

@@ -14,7 +14,7 @@ export default function GraphTool({ lang }: { lang: Lang }) {
   const t = copy[lang];
   const [project, setProject] = useState(() => newProject(lang));
   const { figureLang, isExample, rows, shared, custom, symbols, model, bars, showUncertainties, significantFigures,
-    bounds, appearance, visual, basePreset, showScore } = project;
+    bounds, appearance, visual, showScore } = project;
   const f = copy[figureLang];
   const [resetCount, setResetCount] = useState(0);
   const [zoom, setZoom] = useState(false);
@@ -89,7 +89,6 @@ export default function GraphTool({ lang }: { lang: Lang }) {
   }
   const styles = visual.lines;
   const activePreset = useMemo(() => matchingPreset(visual), [visual]);
-  const baseline = useMemo(() => presetVisual(basePreset), [basePreset]);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState(false);
   const svg = useRef<SVGSVGElement>(null);
@@ -150,8 +149,6 @@ export default function GraphTool({ lang }: { lang: Lang }) {
     return <div class="ib-field">
       <label for={"ib-" + key}>{t[key]}</label>
       <input id={"ib-" + key} value={labels[key]} onInput={e => edit({ custom: { ...custom, [key]: e.currentTarget.value } })} />
-      {custom[key] !== undefined && <button type="button" class="ib-restore" aria-label={t.restoreDefault + " · " + t[key]}
-        onClick={() => { const next = { ...custom }; delete next[key]; edit({ custom: next }); }}>{t.restoreDefault}</button>}
     </div>;
   }
   function symbolField(axis: "x" | "y") {
@@ -222,9 +219,6 @@ export default function GraphTool({ lang }: { lang: Lang }) {
             onChange={e => changeStyle(kind, { pattern: e.currentTarget.value as LineStyle["pattern"] })}>
             {Object.entries(t.patterns).map(([value, name]) => <option key={value} value={value}>{name}</option>)}
           </select>
-          {(styles[kind].color !== baseline.lines[kind].color || styles[kind].pattern !== baseline.lines[kind].pattern) &&
-            <button type="button" class="ib-restore" aria-label={t.restoreDefault + " · " + t[kind]}
-              onClick={() => changeStyle(kind, baseline.lines[kind])}>{t.restoreDefault}</button>}
         </div>)}
       </details>}
       <AdvancedSettings t={t} value={appearance} onChange={appearance => edit({ appearance })} keys={legendKeys} />
