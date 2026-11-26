@@ -1,18 +1,12 @@
+import type { Visual } from "./visual";
 import { UnitText } from "./UnitText";
 import type { Labels } from "./copy";
 
-import { legendSizes, titleSizes, positions, type Appearance, type LegendKey, type Position, type Typography } from "./project";
+import { positions, type Appearance, type LegendKey, type Position } from "./project";
 export const fonts = {
   sans: "Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif",
   serif: "'Times New Roman', 'Songti SC', SimSun, serif",
 };
-export function presetType(appearance: Appearance, key: "title" | "axes") {
-  const origin = appearance.preset === "origin";
-  const above = appearance.titlePosition === "canvas" || appearance.titlePosition === "plot";
-  const font = origin ? "serif" : "sans";
-  if (key === "axes") return { size: 21, font, weight: "400" } as const;
-  return { size: above ? (origin ? 31 : 33) : appearance.size, font, weight: origin || !above ? "600" : "700" } as const;
-}
 export type Entry = {
   key: LegendKey | "title"; position: Position; label: string; values: string[];
   textStyle?: { size: number; font: string; weight: string };
@@ -68,17 +62,17 @@ export function layoutLegend(entries: Entry[], size: number, margin: number, top
   return { left, right, top, bottom, canvasHeight, blocks, rowHeight, gap, pad, entryHeight };
 }
 
-export function Legend({ layout, appearance, font, lineWidth, ink }: {
-  layout: ReturnType<typeof layoutLegend>; appearance: Appearance; font: string; lineWidth: number; ink: string;
+export function Legend({ layout, visual, lineWidth, ink }: {
+  layout: ReturnType<typeof layoutLegend>; visual: Visual; lineWidth: number; ink: string;
 }) {
   const { blocks, rowHeight, gap, pad, entryHeight } = layout;
-  const { size, weight } = appearance;
-  return <g font-family={font} fill={ink}>
+  const { size, weight, detailWeight, font } = visual.legend;
+  return <g font-family={fonts[font]} fill={ink}>
     {blocks.map(block => {
       const inside = block.position !== "right" && block.position !== "below";
       let nextY = pad;
       return <g key={block.position + block.items[0].key} data-position={block.position} transform={`translate(${block.x} ${block.y}) scale(${block.scale})`}>
-        {inside && <rect width={block.width} height={block.height} fill="white" stroke={appearance.preset === "origin" ? ink : "#aab8bf"} stroke-width="1" />}
+        {inside && <rect width={block.width} height={block.height} fill="white" stroke={visual.legendBorder} stroke-width="1" />}
         {block.items.map(entry => {
           const labelSize = entry.textStyle?.size ?? size;
           const y = nextY + labelSize;
@@ -86,9 +80,9 @@ export function Legend({ layout, appearance, font, lineWidth, ink }: {
           const x = pad + (entry.stroke ? 44 : 0), available = block.width - x - pad;
           return <g key={entry.key} data-legend={entry.key}>
             {entry.stroke && <path d={`M${pad} ${y-size*.32}h34`} stroke={entry.stroke.color} stroke-width={lineWidth} stroke-dasharray={entry.stroke.dash} />}
-            <text x={x} y={y} font-family={entry.textStyle?.font} font-size={fitSize(entry.label, labelSize, available)} font-weight={entry.textStyle?.weight ?? (weight === "auto" ? "600" : weight)}>{entry.label}</text>
+            <text x={x} y={y} font-family={entry.textStyle?.font} font-size={fitSize(entry.label, labelSize, available)} font-weight={entry.textStyle?.weight ?? weight}>{entry.label}</text>
             {entry.values.map((v, i) => <text key={i} x={x} y={y + (i+1)*rowHeight}
-              fill={entry.stroke?.color ?? ink} font-size={fitSize(v, size, available)} font-weight={weight === "auto" ? "400" : weight}>{entry.key === "uncertainty" ? <UnitText value={v} /> : v}</text>)}
+              fill={entry.stroke?.color ?? ink} font-size={fitSize(v, size, available)} font-weight={detailWeight}><UnitText value={v} /></text>)}
           </g>;
         })}
       </g>;
@@ -111,29 +105,5 @@ export function AdvancedSettings({ t, value, onChange, keys }: {
         {positions.map(p => <option key={p} value={p}>{t.positions[p]}</option>)}
       </select></label>)}
     </fieldset>
-    <TypeControls t={t} label={t.legendType} style={value} sizes={legendSizes} defaults={{ font: presetType(value, "axes").font }}
-      onChange={style => onChange({ ...value, ...style, size: style.size as Appearance["size"] })} />
-    {(["title", "axes"] as const).map(key =>
-      <TypeControls key={key} t={t} label={t.typeLabels[key]} style={value.typography[key]} defaults={presetType(value, key)}
-        sizes={titleSizes} onChange={style => onChange({
-          ...value, typography: { ...value.typography, [key]: style },
-        })} />)}
   </details>;
-}
-
-function TypeControls({ t, label, style, sizes, defaults, onChange }: {
-  t: Labels; label: string; style: Typography; sizes: readonly number[]; defaults: { size?: number; font: "serif" | "sans"; weight?: "400" | "600" | "700" };
-  onChange: (style: Typography) => void;
-}) {
-  const weights = { "400": t.regular, "600": t.semibold, "700": t.bold };
-  const presetLabel = (value: string | number) => value + " (" + t.presetValue + ")";
-  return <fieldset class="ib-advanced"><legend>{label}</legend>
-      <label class="ib-field">{t.fontSize}<select value={style.size} onChange={e => onChange({ ...style, size: e.currentTarget.value === "auto" ? "auto" : Number(e.currentTarget.value) as Typography["size"] })}>
-        {defaults.size !== undefined && <option value="auto">{presetLabel(defaults.size)}</option>}
-        {sizes.map(n => <option key={n} value={n}>{n}</option>)}</select></label>
-      <label class="ib-field">{t.fontFamily}<select value={style.font} onChange={e => onChange({ ...style, font: e.currentTarget.value as Appearance["font"] })}>
-        <option value="auto">{presetLabel(t[defaults.font])}</option><option value="serif">{t.serif}</option><option value="sans">{t.sans}</option></select></label>
-      <label class="ib-field">{t.fontWeight}<select value={style.weight} onChange={e => onChange({ ...style, weight: e.currentTarget.value as Appearance["weight"] })}>
-        <option value="auto">{presetLabel(defaults.weight ? weights[defaults.weight] + " " + defaults.weight : t.legendWeights)}</option><option value="400">{t.regular}</option><option value="600">{t.semibold}</option><option value="700">{t.bold}</option></select></label>
-    </fieldset>;
 }

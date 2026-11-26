@@ -2,17 +2,19 @@ import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "preact/
 import { MeasurementGrid, readMeasurements, columns, emptyRow } from "./MeasurementGrid";
 import type { Lang } from "../../i18n/utils";
 import { copy } from "./copy";
-import { Figure, defaultStyles, downloadPng, type LineStyle } from "./Figure";
+import { Figure, downloadPng } from "./Figure";
 import { AdvancedSettings } from "./Legend";
-import { draftKey, newProject, readProject, models, type Project, type Field, type Preset, type LegendKey } from "./project";
+import { draftKey, newProject, readProject, models, type Project, type Field, type LegendKey } from "./project";
 import { rSquared, endpointSlopes, fit } from "./graph";
+import { VisualSettings } from "./VisualSettings";
+import { matchingPreset, presetVisual, type LineStyle, type Preset, type Visual } from "./visual";
 import "./tool.css";
 
 export default function GraphTool({ lang }: { lang: Lang }) {
   const t = copy[lang];
   const [project, setProject] = useState(() => newProject(lang));
-  const { figureLang, isExample, rows, shared, custom, model, bars, showUncertainties, significantFigures,
-    bounds, appearance, grids, showScore, customStyles } = project;
+  const { figureLang, isExample, rows, shared, custom, symbols, model, bars, showUncertainties, significantFigures,
+    bounds, appearance, visual, basePreset, showScore } = project;
   const f = copy[figureLang];
   const [resetCount, setResetCount] = useState(0);
   const [zoom, setZoom] = useState(false);
@@ -85,14 +87,9 @@ export default function GraphTool({ lang }: { lang: Lang }) {
       setFileStatus("fileOpened");
     } catch { if (request === openRequest.current) setFileStatus("invalidFile"); }
   }
-  const styles = useMemo(() => {
-    const styles = { ...defaultStyles };
-    const originColors = { best: "#222222", min: "#25579d", max: "#b63632" };
-    for (const kind of ["best", "min", "max"] as const) {
-      styles[kind] = { ...defaultStyles[kind], color: appearance.preset === "origin" ? originColors[kind] : defaultStyles[kind].color, ...customStyles[kind] };
-    }
-    return styles;
-  }, [appearance.preset, customStyles]);
+  const styles = visual.lines;
+  const activePreset = useMemo(() => matchingPreset(visual), [visual]);
+  const baseline = useMemo(() => presetVisual(basePreset), [basePreset]);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState(false);
   const svg = useRef<SVGSVGElement>(null);
@@ -117,8 +114,8 @@ export default function GraphTool({ lang }: { lang: Lang }) {
   if (score !== undefined) legendKeys.push("rSquared");
   if (showUncertainties) legendKeys.push("uncertainty");
 
-  function changeStyle(kind: keyof typeof defaultStyles, change: Partial<LineStyle>) {
-    edit({ customStyles: { ...customStyles, [kind]: { ...customStyles[kind], ...change } } });
+  function changeStyle(kind: keyof Visual["lines"], change: Partial<LineStyle>) {
+    edit({ visual: { ...visual, lines: { ...styles, [kind]: { ...styles[kind], ...change } } } });
   }
   const changeRows = useCallback((rows: string[][]) => setProject(previous => ({ ...previous, rows })), []);
   function resetAll() {
@@ -137,7 +134,7 @@ export default function GraphTool({ lang }: { lang: Lang }) {
     } catch { setCacheStatus("cacheError"); }
   }
   function startBlank() {
-    edit({ isExample: false, rows: [emptyRow()], shared: ["", ""], custom: {}, customStyles: {} });
+    edit({ isExample: false, rows: [emptyRow()], shared: ["", ""], custom: {}, symbols: { x: "x", y: "y" } });
     setFileStatus(null);
     setExportError(false);
   }
@@ -150,8 +147,18 @@ export default function GraphTool({ lang }: { lang: Lang }) {
     finally { setExporting(false); }
   }
   function field(key: Field) {
-    return <label class="ib-field">{t[key]}<input value={labels[key]}
-      onInput={e => edit({ custom: { ...custom, [key]: e.currentTarget.value } })} /></label>;
+    return <div class="ib-field">
+      <label for={"ib-" + key}>{t[key]}</label>
+      <input id={"ib-" + key} value={labels[key]} onInput={e => edit({ custom: { ...custom, [key]: e.currentTarget.value } })} />
+      {custom[key] !== undefined && <button type="button" class="ib-restore" aria-label={t.restoreDefault + " · " + t[key]}
+        onClick={() => { const next = { ...custom }; delete next[key]; edit({ custom: next }); }}>{t.restoreDefault}</button>}
+    </div>;
+  }
+  function symbolField(axis: "x" | "y") {
+    return <label class="ib-field">{axis === "x" ? t.xSymbol : t.ySymbol}
+      <input value={symbols[axis]} placeholder={axis}
+        onInput={e => edit({ symbols: { ...symbols, [axis]: e.currentTarget.value } })} />
+    </label>;
   }
   return <div class="ib-tool" key={resetCount}>
     <section class="ib-preview" aria-label={t.preview}>
@@ -159,7 +166,11 @@ export default function GraphTool({ lang }: { lang: Lang }) {
         <h2>{t.preview}</h2>
         <button class="ib-zoom" aria-pressed={zoom} onClick={() => setZoom(!zoom)}>{zoom ? t.fitWidth : t.zoom}</button>
         <label class="ib-language">{t.preset}
-          <select aria-label={t.preset} value={appearance.preset} onChange={e => edit({ appearance: { ...appearance, preset: e.currentTarget.value as Preset } })}>
+          <select aria-label={t.preset} value={activePreset} onChange={e => {
+            const preset = e.currentTarget.value as Preset;
+            edit({ basePreset: preset, visual: presetVisual(preset) });
+          }}>
+            {activePreset === "custom" && <option value="custom" disabled>{t.customStyle}</option>}
             <option value="matplotlib">Matplotlib</option><option value="origin">Origin</option>
           </select>
         </label>
@@ -175,16 +186,16 @@ export default function GraphTool({ lang }: { lang: Lang }) {
       </div>
       <div class={"ib-canvas" + (zoom ? " is-zoomed" : "")}>
       <Figure svgRef={svg} t={f} title={labels.title} xLabel={labels.xName} yLabel={labels.yName}
-        ySymbol={isExample && custom.yName === undefined ? "F" : "y"} xUnit={labels.xUnit}
-        yUnit={labels.yUnit} points={points} lines={lines} styles={styles} bars={bars}
-        showUncertainties={showUncertainties} significantFigures={significantFigures} appearance={appearance} score={score} showGrid={grids[appearance.preset]} />
+        xSymbol={symbols.x.trim() || "x"} ySymbol={symbols.y.trim() || "y"} xUnit={labels.xUnit}
+        yUnit={labels.yUnit} points={points} lines={lines} visual={visual} bars={bars}
+        showUncertainties={showUncertainties} significantFigures={significantFigures} appearance={appearance} score={score} />
       </div>
       {(result?.error || extremes.error || exportError) && <p class="ib-notice" role="status">
         {result?.error && t[result.error]} {extremes.error && t[extremes.error]} {exportError && t.exportError}
       </p>}
       <div class="ib-legend-options">
-        <label class="ib-check"><input type="checkbox" checked={grids[appearance.preset]}
-          onChange={e => edit({ grids: { ...grids, [appearance.preset]: e.currentTarget.checked } })} />{t.showGrid}</label>
+        <label class="ib-check"><input type="checkbox" checked={visual.grid}
+          onChange={e => edit({ visual: { ...visual, grid: e.currentTarget.checked } })} />{t.showGrid}</label>
         <label class="ib-check"><input type="checkbox" checked={showUncertainties}
           onChange={e => edit({ showUncertainties: e.currentTarget.checked })} />{t.showUncertainties}</label>
         {result?.curve && <label class="ib-check" title={t.scoreHint}><input type="checkbox" checked={showScore}
@@ -211,9 +222,13 @@ export default function GraphTool({ lang }: { lang: Lang }) {
             onChange={e => changeStyle(kind, { pattern: e.currentTarget.value as LineStyle["pattern"] })}>
             {Object.entries(t.patterns).map(([value, name]) => <option key={value} value={value}>{name}</option>)}
           </select>
+          {(styles[kind].color !== baseline.lines[kind].color || styles[kind].pattern !== baseline.lines[kind].pattern) &&
+            <button type="button" class="ib-restore" aria-label={t.restoreDefault + " · " + t[kind]}
+              onClick={() => changeStyle(kind, baseline.lines[kind])}>{t.restoreDefault}</button>}
         </div>)}
       </details>}
       <AdvancedSettings t={t} value={appearance} onChange={appearance => edit({ appearance })} keys={legendKeys} />
+      <VisualSettings t={t} value={visual} onChange={visual => edit({ visual })} />
     </section>
     <div class="ib-project-files">
       <button type="button" onClick={saveProject}>{t.saveProject}</button>
@@ -249,6 +264,8 @@ export default function GraphTool({ lang }: { lang: Lang }) {
         <div class="ib-fields">{field("title")}
           <div class="ib-axis">{field("xName")}{field("xUnit")}</div>
           <div class="ib-axis">{field("yName")}{field("yUnit")}</div>
+          <div class="ib-pair">{symbolField("x")}{symbolField("y")}</div>
+          <p class="ib-symbol-hint">{t.symbolHint}</p>
           <details class="ib-unit-help"><summary>{t.unitHelp}</summary>
             <p>{t.unitSyntax}</p>
             <p><code>m^2</code> → m² · <code>{"m s^{-2}"}</code> → m s⁻² · <code>H_2O</code> → H₂O</p>

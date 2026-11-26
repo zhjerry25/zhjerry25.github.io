@@ -1,8 +1,9 @@
 import { memo } from "preact/compat";
 import { useMemo } from "preact/hooks";
 import type { Ref } from "preact";
-import { Legend, fitSize, fonts, layoutLegend, presetType, type Entry } from "./Legend";
+import { Legend, fitSize, fonts, layoutLegend, type Entry } from "./Legend";
 import { UnitText } from "./UnitText";
+import type { Visual } from "./visual";
 import type { Appearance } from "./project";
 import { makeAxis } from "./axis";
 import type { Labels } from "./copy";
@@ -14,12 +15,6 @@ export const dashPatterns = {
   longDash: "15 9",
   shortDash: "7 7",
   dashDot: "14 5 3 5",
-};
-export type LineStyle = { color: string; pattern: keyof typeof dashPatterns };
-export const defaultStyles: Record<Line["kind"], LineStyle> = {
-  best: { color: "#20649d", pattern: "solid" },
-  min: { color: "#108477", pattern: "longDash" },
-  max: { color: "#bc551d", pattern: "shortDash" },
 };
 function preparePlot(points: Point[], lines: Line[], bars: boolean) {
   let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
@@ -47,10 +42,10 @@ function preparePlot(points: Point[], lines: Line[], bars: boolean) {
   return { xa, ya, sampled };
 }
 
-export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit, points, lines, styles, bars, showUncertainties, significantFigures, appearance, score, showGrid }: {
-  svgRef: Ref<SVGSVGElement>; t: Labels; title: string; xLabel: string; yLabel: string; ySymbol: string;
-  xUnit: string; yUnit: string; points: Point[]; lines: Line[]; styles: typeof defaultStyles; bars: boolean;
-  showUncertainties: boolean; significantFigures: number; appearance: Appearance; showGrid: boolean; score: number | null | undefined;
+export function Figure({ svgRef, t, title, xLabel, yLabel, xSymbol, ySymbol, xUnit, yUnit, points, lines, visual, bars, showUncertainties, significantFigures, appearance, score }: {
+  svgRef: Ref<SVGSVGElement>; t: Labels; title: string; xLabel: string; yLabel: string; xSymbol: string; ySymbol: string;
+  xUnit: string; yUnit: string; points: Point[]; lines: Line[]; visual: Visual; bars: boolean;
+  showUncertainties: boolean; significantFigures: number; appearance: Appearance; score: number | null | undefined;
 }) {
   const plot = useMemo(() => preparePlot(points, lines, bars), [points, lines, bars]);
   const { xa, ya } = plot;
@@ -61,24 +56,14 @@ export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit
       const value = points[0][key];
       if (value <= 0 || !points.every(p => p[key] === value)) continue;
       const unit = key === "dx" ? xUnit : yUnit;
-      const symbol = key === "dx" ? "x" : ySymbol;
+      const symbol = key === "dx" ? xSymbol : ySymbol;
       uncertainties.push("Δ" + symbol + " = ±" + numberText(value) + (unit ? " " + unit : ""));
     }
   }
-  const origin = appearance.preset === "origin";
-  const ink = origin ? "#111111" : "#182c39";
-  const lineWidth = origin ? 1.9 : 3.3;
-  const family = origin ? "serif" : "sans";
+  const { ink, lineWidth, lines: styles, title: titleType, axes: axisType } = visual;
   const topTitle = appearance.titlePosition === "canvas" || appearance.titlePosition === "plot";
-  function resolveType(key: "title" | "axes") {
-    const style = appearance.typography[key], defaults = presetType(appearance, key);
-    return {
-      size: style.size === "auto" ? defaults.size : style.size,
-      weight: style.weight === "auto" ? defaults.weight : style.weight,
-      font: fonts[style.font === "auto" ? defaults.font : style.font],
-    };
-  }
-  const titleStyle = resolveType("title"), axisStyle = resolveType("axes");
+  const titleStyle = { ...titleType, font: fonts[titleType.font] };
+  const axisStyle = { ...axisType, font: fonts[axisType.font] };
   const entries: Entry[] = [];
   if (title && appearance.titlePosition !== "plot" && appearance.titlePosition !== "canvas") {
     entries.push({ key: "title", position: appearance.titlePosition, label: title, values: [], textStyle: titleStyle });
@@ -86,7 +71,7 @@ export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit
   for (const { kind, curve } of lines) {
     const style = styles[kind];
     entries.push({ key: kind, position: appearance.positions[kind], label: t[kind],
-      values: [ySymbol + " = " + equation(curve, significantFigures)],
+      values: [ySymbol + " = " + equation(curve, significantFigures, xSymbol)],
       stroke: { color: style.color, dash: dashPatterns[style.pattern] } });
   }
   if (score !== undefined) {
@@ -101,69 +86,73 @@ export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit
   const fullY = yLabel + (yUnit ? " (" + yUnit + ")" : "");
   const tickWidth = Math.max(0, ...(ya?.ticks.map(tick => tick.label.length) ?? [])) * 11;
   const margin = Math.max(78, (fullY ? 68 + Math.max(0, axisStyle.size - 21) : 30) + tickWidth);
-  const box = layoutLegend(entries, appearance.size, margin, title && topTitle ? 120 : 68);
+  const box = layoutLegend(entries, visual.legend.size, margin, title && topTitle ? 120 : 68);
   const width = box.right - box.left, height = box.bottom - box.top;
+  const boxed = visual.frame === "box";
+  const xTick = (x: number, n: number) => `M${x} ${box.bottom}v-${n}` + (boxed ? ` M${x} ${box.top}v${n}` : "");
+  const yTick = (y: number, n: number) => `M${box.left} ${y}h${n}` + (boxed ? ` M${box.right} ${y}h-${n}` : "");
   const abovePlot = appearance.titlePosition === "plot";
   const titleX = abovePlot ? box.left + width / 2 : 600;
+  const titleGap = abovePlot ? 28 : 36;
+  const titleY = box.top - (ya?.note ? 49 : titleGap);
   return <svg ref={svgRef} xmlns="http://www.w3.org/2000/svg" width="1200" height={box.canvasHeight}
-    viewBox={`0 0 1200 ${box.canvasHeight}`} role="img" font-weight="400" aria-label={title || t.preview} font-family={fonts[family]} fill={ink}>
+    viewBox={`0 0 1200 ${box.canvasHeight}`} role="img" font-weight="400" aria-label={title || t.preview} font-family={fonts[visual.tickFont]} fill={ink}>
     <title>{title || t.preview}</title>
     <rect width="1200" height={box.canvasHeight} fill="white" />
-    {topTitle && <text x={titleX} y={abovePlot ? box.top - (ya?.note ? 49 : 28) : 65} text-anchor="middle"
+    {topTitle && <text x={titleX} y={titleY} text-anchor="middle"
       font-family={titleStyle.font} font-weight={titleStyle.weight} font-size={fitSize(title, titleStyle.size, abovePlot ? width : 1110)}>{title}</text>}
     {plotted ? <>
-      {showGrid && <g data-grid="" stroke={origin ? "#dedede" : "#e1e7ea"} stroke-width={origin ? 0.8 : 1}>
+      {visual.grid && <g data-grid="" stroke={visual.gridColor} stroke-width={visual.gridWidth}>
         {xa.ticks.map(({position}) => <path key={"x" + position} d={`M${box.left + position * width} ${box.top}v${height}`} />)}
         {ya.ticks.map(({position}) => <path key={"y" + position} d={`M${box.left} ${box.bottom - position * height}h${width}`} />)}
       </g>}
       {xa.ticks.map(({position, label}) => {
         const x = box.left + position * width;
         return <g key={label}>
-          {origin && <path d={`M${x} ${box.top}v8 M${x} ${box.bottom}v-8`} stroke={ink} stroke-width="1.3" />}
+          {visual.majorTicks && <path d={xTick(x, 8)} stroke={visual.tickColor} stroke-width="1.3" />}
           <text x={x} y={box.bottom + 26} text-anchor="middle" font-size="17">{label}</text>
         </g>;
       })}
       {ya.ticks.map(({position, label}) => {
         const y = box.bottom - position * height;
         return <g key={label}>
-          {origin && <path d={`M${box.left} ${y}h8 M${box.right} ${y}h-8`} stroke={ink} stroke-width="1.3" />}
+          {visual.majorTicks && <path d={yTick(y, 8)} stroke={visual.tickColor} stroke-width="1.3" />}
           <text x={box.left - 12} y={y + 5} text-anchor="end" font-size="17">{label}</text>
         </g>;
       })}
-      {origin && <g stroke={ink} stroke-width="0.9">
+      {visual.minorTicks && <g stroke={visual.tickColor} stroke-width="0.9">
         {xa.ticks.slice(1).map((tick, i) => {
           const x = box.left + width * (tick.position + xa.ticks[i].position) / 2;
-          return <path key={i} d={`M${x} ${box.top}v4 M${x} ${box.bottom}v-4`} />;
+          return <path key={i} d={xTick(x, 4)} />;
         })}
         {ya.ticks.slice(1).map((tick, i) => {
           const y = box.bottom - height * (tick.position + ya.ticks[i].position) / 2;
-          return <path key={i} d={`M${box.left} ${y}h4 M${box.right} ${y}h-4`} />;
+          return <path key={i} d={yTick(y, 4)} />;
         })}
       </g>}
       {ya.note && <text x={box.left} y={box.top - 11} font-size="16">{ya.note}</text>}
       {xa.note && <text x={box.right} y={box.bottom + 50} text-anchor="end" font-size="16">{xa.note}</text>}
-      {origin ? <rect x={box.left} y={box.top} width={width} height={height} fill="none" stroke={ink} stroke-width="1.5" />
-        : <path d={`M${box.left} ${box.top}V${box.bottom}H${box.right}`} fill="none" stroke="#81949e" />}
+      {boxed ? <rect x={box.left} y={box.top} width={width} height={height} fill="none" stroke={visual.frameColor} stroke-width={visual.frameWidth} />
+        : <path d={`M${box.left} ${box.top}V${box.bottom}H${box.right}`} fill="none" stroke={visual.frameColor} stroke-width={visual.frameWidth} />}
       <text x={box.left + width / 2} y={box.bottom + (xa.note ? 79 : 61) + Math.max(0, axisStyle.size - 21) * .7} text-anchor="middle" font-family={axisStyle.font} font-weight={axisStyle.weight} font-size={fitSize(fullX, axisStyle.size, width)}>{xLabel}{xUnit && <> (<UnitText value={xUnit} />)</>}</text>
       <text transform={`translate(${box.left - tickWidth - 31 - Math.max(0, axisStyle.size - 21) * .4} ${box.top + height / 2}) rotate(-90)`} text-anchor="middle" font-family={axisStyle.font} font-weight={axisStyle.weight} font-size={fitSize(fullY, axisStyle.size, height)}>{yLabel}{yUnit && <> (<UnitText value={yUnit} />)</>}</text>
       <defs><clipPath id="ib-plot"><rect x={box.left - 4} y={box.top - 4} width={box.right - box.left + 8} height={box.bottom - box.top + 8} /></clipPath></defs>
-      <DataMarks plot={plot} points={points} styles={styles} bars={bars} origin={origin} ink={ink} lineWidth={lineWidth}
+      <DataMarks plot={plot} points={points} styles={styles} bars={bars} marker={visual.marker} markerSize={visual.markerSize} errorWidth={visual.errorWidth} markerColor={visual.markerColor} errorColor={visual.errorColor} lineWidth={lineWidth}
         left={box.left} bottom={box.bottom} width={width} height={height} />
-      <Legend layout={box} appearance={appearance} ink={ink} lineWidth={lineWidth}
-        font={fonts[appearance.font === "auto" ? family : appearance.font]} />
+      <Legend layout={box} visual={visual} ink={ink} lineWidth={lineWidth} />
     </> : <text x="600" y="355" text-anchor="middle" font-size="25">{points.length ? t.range : t.empty}</text>}
   </svg>;
 }
 
-const DataMarks = memo(function DataMarks({ plot, points, styles, bars, origin, ink, lineWidth, left, bottom, width, height }: {
-  plot: ReturnType<typeof preparePlot>; points: Point[]; styles: typeof defaultStyles; bars: boolean; origin: boolean;
-  ink: string; lineWidth: number; left: number; bottom: number; width: number; height: number;
+const DataMarks = memo(function DataMarks({ plot, points, styles, bars, marker, markerSize, errorWidth, markerColor, errorColor, lineWidth, left, bottom, width, height }: {
+  plot: ReturnType<typeof preparePlot>; points: Point[]; styles: Visual["lines"]; bars: boolean; marker: Visual["marker"]; markerSize: number; errorWidth: number;
+  markerColor: string; errorColor: string; lineWidth: number; left: number; bottom: number; width: number; height: number;
 }) {
   const { xa, ya, sampled } = plot;
   if (!xa || !ya) return null;
   const px = (x: number) => left + xa.position(x) * width;
   const py = (y: number) => bottom - ya.position(y) * height;
-  return <g clip-path="url(#ib-plot)">
+  return <g clip-path="url(#ib-plot)" fill={markerColor}>
         {sampled.map(({ samples, kind }) => {
           let path = "", move = true;
           for (const { x, y } of samples) {
@@ -177,9 +166,9 @@ const DataMarks = memo(function DataMarks({ plot, points, styles, bars, origin, 
           const x = px(p.x), y = py(p.y);
           const left = px(p.x - p.dx), right = px(p.x + p.dx), top = py(p.y + p.dy), bottom = py(p.y - p.dy);
           return <g key={i}>
-            {bars && p.dx > 0 && <path stroke={ink} stroke-width={origin ? 1.1 : 1.8} fill="none" d={`M${left} ${y}H${right} M${left} ${y-6}v12 M${right} ${y-6}v12`} />}
-            {bars && p.dy > 0 && <path stroke={ink} stroke-width={origin ? 1.1 : 1.8} fill="none" d={`M${x} ${top}V${bottom} M${x-6} ${top}h12 M${x-6} ${bottom}h12`} />}
-            {origin ? <rect x={x-3} y={y-3} width="6" height="6" /> : <circle cx={x} cy={y} r="4.1" />}
+            {bars && p.dx > 0 && <path stroke={errorColor} stroke-width={errorWidth} fill="none" d={`M${left} ${y}H${right} M${left} ${y-6}v12 M${right} ${y-6}v12`} />}
+            {bars && p.dy > 0 && <path stroke={errorColor} stroke-width={errorWidth} fill="none" d={`M${x} ${top}V${bottom} M${x-6} ${top}h12 M${x-6} ${bottom}h12`} />}
+            {marker === "square" ? <rect x={x-markerSize/2} y={y-markerSize/2} width={markerSize} height={markerSize} /> : <circle cx={x} cy={y} r={markerSize/2} />}
           </g>;
         })}
       </g>;

@@ -62,8 +62,16 @@ test("offset fits retain small differences in both axes across row orders", () =
   for (const rows of [p, p.toReversed()]) {
     const curve = fit(rows, "linear").curve;
     assert.equal(equation(curve, 2), "8.0(x − 1000000000000000) + 1.0");
+    assert.equal(equation(curve, 2, "t"), "8.0(t − 1000000000000000) + 1.0");
     for (const {x,y} of rows) close(curve.at(x), y);
   }
+});
+
+test("custom measurement symbols appear in every model", () => {
+  for (const [model, expected] of [
+    ["linear", "2t + 3"], ["quadratic", "2t² + 3t + 4"],
+    ["exponential", "2 exp(3t)"], ["power", "2 t^(3)"], ["logarithmic", "2 ln(t) + 3"],
+  ]) assert.equal(equation({ model, coefficients: [2, 3, 4] }, 1, "t"), expected);
 });
 
 test("axes cover constant, signed, microscopic, large and tightly clustered values", () => {
