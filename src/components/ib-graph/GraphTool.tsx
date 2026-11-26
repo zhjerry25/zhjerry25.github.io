@@ -1,35 +1,77 @@
-import { useRef, useState } from "preact/hooks";
+import { useLayoutEffect, useRef, useState } from "preact/hooks";
 import type { JSX } from "preact";
 import type { Lang } from "../../i18n/utils";
 import { copy } from "./copy";
 import { Figure, defaultStyles, downloadPng, type LineStyle } from "./Figure";
-import { AdvancedSettings, defaultAppearance, type Preset, type LegendKey } from "./Legend";
-import { rSquared, endpointSlopes, example, fit, parseCell, type Model, type Point } from "./graph";
+import { AdvancedSettings } from "./Legend";
+import { draftKey, newProject, readProject, models, type Project, type Field, type Preset, type LegendKey } from "./project";
+import { rSquared, endpointSlopes, fit, parseCell, type Point } from "./graph";
 import "./tool.css";
 
 const columns = ["x", "y", "Δx", "Δy"];
-const models: Model[] = ["linear", "quadratic", "exponential", "power", "logarithmic"];
 const emptyRow = () => ["", "", "", ""];
-type Field = "title" | "xName" | "yName" | "xUnit" | "yUnit";
 
 export default function GraphTool({ lang }: { lang: Lang }) {
   const t = copy[lang];
-  const [figureLang, setFigureLang] = useState<Lang>(lang);
+  const [project, setProject] = useState(() => newProject(lang));
+  const { figureLang, isExample, rows, shared, custom, model, bars, showUncertainties, significantFigures,
+    bounds, appearance, grids, showScore, customStyles } = project;
   const f = copy[figureLang];
-  const [isExample, setIsExample] = useState(true);
-  const [rows, setRows] = useState(() => example.map(([x, y]) => [x, y, "", ""]));
-  const [shared, setShared] = useState(["0.001", "0.05"]);
-  const [custom, setCustom] = useState<Partial<Record<Field, string>>>({});
-  const [model, setModel] = useState<Model | "none">("linear");
-  const [bars, setBars] = useState(true);
-  const [showUncertainties, setShowUncertainties] = useState(false);
-  const [significantFigures, setSignificantFigures] = useState(3);
   const [zoom, setZoom] = useState(false);
-  const [bounds, setBounds] = useState(true);
-  const [appearance, setAppearance] = useState(defaultAppearance);
-  const [grids, setGrids] = useState({ matplotlib: true, origin: false });
-  const [showScore, setShowScore] = useState(true);
-  const [customStyles, setCustomStyles] = useState<Partial<Record<keyof typeof defaultStyles, Partial<LineStyle>>>>({});
+  const [cacheStatus, setCacheStatus] = useState<"draftHint" | "draftSaved" | "draftRestored" | "cacheError" | "badDraft">("draftHint");
+  const [fileStatus, setFileStatus] = useState<"fileOpened" | "invalidFile" | "saveFailed" | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const openRequest = useRef(0);
+  const initialized = useRef(false);
+  const restored = useRef<Project | null>(null);
+  useLayoutEffect(() => {
+    if (!initialized.current) {
+      initialized.current = true;
+      try {
+        const text = localStorage.getItem(draftKey);
+        if (text !== null) {
+          try {
+            restored.current = readProject(text);
+            setProject(restored.current);
+            setCacheStatus("draftRestored");
+          } catch { setCacheStatus("badDraft"); }
+        }
+      } catch { setCacheStatus("cacheError"); }
+      return;
+    }
+    if (project === restored.current) return;
+    restored.current = null;
+    try {
+      localStorage.setItem(draftKey, JSON.stringify(project));
+      setCacheStatus("draftSaved");
+    } catch { setCacheStatus("cacheError"); }
+  }, [project]);
+
+  function edit(changes: Partial<Project>) {
+    setProject(previous => ({ ...previous, ...changes }));
+  }
+  function saveProject() {
+    setFileStatus(null);
+    try {
+      const file = new Blob([JSON.stringify(project, null, 2)], { type: "application/json" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(file);
+      link.download = (labels.title.replace(/[\\/:*?"<>|]/g, "-").trim().slice(0, 100) || "ib-graph") + ".ibgraph.json";
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(link.href), 30000);
+    } catch { setFileStatus("saveFailed"); }
+  }
+  async function openProject(file?: File) {
+    if (!file) return;
+    const request = ++openRequest.current;
+    try {
+      const next = readProject(await file.text());
+      if (request !== openRequest.current) return;
+      setProject(next);
+      setExportError(false);
+      setFileStatus("fileOpened");
+    } catch { if (request === openRequest.current) setFileStatus("invalidFile"); }
+  }
   const styles = { ...defaultStyles };
   const originColors = { best: "#222222", min: "#25579d", max: "#b63632" };
   for (const kind of ["best", "min", "max"] as const) {
@@ -74,32 +116,27 @@ export default function GraphTool({ lang }: { lang: Lang }) {
   if (showUncertainties) legendKeys.push("uncertainty");
 
   function changeStyle(kind: keyof typeof defaultStyles, change: Partial<LineStyle>) {
-    setCustomStyles(previous => ({ ...previous, [kind]: { ...previous[kind], ...change } }));
+    edit({ customStyles: { ...customStyles, [kind]: { ...customStyles[kind], ...change } } });
   }
   function updateCell(row: number, column: number, value: string) {
-    setRows(previous => previous.map((cells, i) => i === row
-      ? cells.map((cell, j) => j === column ? value : cell) : cells));
+    edit({ rows: rows.map((cells, i) => i === row
+      ? cells.map((cell, j) => j === column ? value : cell) : cells) });
   }
   function paste(event: JSX.TargetedClipboardEvent<HTMLInputElement>, row: number, col: number) {
     const text = event.clipboardData?.getData("text/plain") ?? "";
     if (!/[\t\n\r]/.test(text)) return;
     event.preventDefault();
     const block = text.replace(/\r\n?/g, "\n").replace(/\n+$/, "").split("\n").map(line => line.split("\t"));
-    setRows(previous => {
-      const next = previous.map(cells => [...cells]);
-      block.forEach((cells, i) => {
-        const target = next[row + i] ?? (next[row + i] = emptyRow());
-        cells.slice(0, 4 - col).forEach((value, j) => { target[col + j] = value.trim(); });
-      });
-      return next;
+    const next = rows.map(cells => [...cells]);
+    block.forEach((cells, i) => {
+      const target = next[row + i] ?? (next[row + i] = emptyRow());
+      cells.slice(0, 4 - col).forEach((value, j) => { target[col + j] = value.trim(); });
     });
+    edit({ rows: next });
   }
   function startBlank() {
-    setIsExample(false);
-    setRows([emptyRow()]);
-    setShared(["", ""]);
-    setCustom({});
-    setCustomStyles({});
+    edit({ isExample: false, rows: [emptyRow()], shared: ["", ""], custom: {}, customStyles: {} });
+    setFileStatus(null);
     setExportError(false);
   }
   async function save() {
@@ -112,7 +149,7 @@ export default function GraphTool({ lang }: { lang: Lang }) {
   }
   function field(key: Field) {
     return <label class="ib-field">{t[key]}<input value={labels[key]}
-      onInput={e => setCustom({ ...custom, [key]: e.currentTarget.value })} /></label>;
+      onInput={e => edit({ custom: { ...custom, [key]: e.currentTarget.value } })} /></label>;
   }
   return <div class="ib-tool">
     <section class="ib-preview" aria-label={t.preview}>
@@ -120,12 +157,12 @@ export default function GraphTool({ lang }: { lang: Lang }) {
         <h2>{t.preview}</h2>
         <button class="ib-zoom" aria-pressed={zoom} onClick={() => setZoom(!zoom)}>{zoom ? t.fitWidth : t.zoom}</button>
         <label class="ib-language">{t.preset}
-          <select aria-label={t.preset} value={appearance.preset} onChange={e => setAppearance({ ...appearance, preset: e.currentTarget.value as Preset })}>
+          <select aria-label={t.preset} value={appearance.preset} onChange={e => edit({ appearance: { ...appearance, preset: e.currentTarget.value as Preset } })}>
             <option value="matplotlib">Matplotlib</option><option value="origin">Origin</option>
           </select>
         </label>
         <label class="ib-language">{t.lang}
-          <select aria-label={t.lang} value={figureLang} onChange={e => setFigureLang(e.currentTarget.value as Lang)}>
+          <select aria-label={t.lang} value={figureLang} onChange={e => edit({ figureLang: e.currentTarget.value as Lang })}>
             <option value="zh">中文</option><option value="en">English</option>
           </select>
         </label>
@@ -145,14 +182,14 @@ export default function GraphTool({ lang }: { lang: Lang }) {
       </p>}
       <div class="ib-legend-options">
         <label class="ib-check"><input type="checkbox" checked={grids[appearance.preset]}
-          onChange={e => setGrids({ ...grids, [appearance.preset]: e.currentTarget.checked })} />{t.showGrid}</label>
+          onChange={e => edit({ grids: { ...grids, [appearance.preset]: e.currentTarget.checked } })} />{t.showGrid}</label>
         <label class="ib-check"><input type="checkbox" checked={showUncertainties}
-          onChange={e => setShowUncertainties(e.currentTarget.checked)} />{t.showUncertainties}</label>
+          onChange={e => edit({ showUncertainties: e.currentTarget.checked })} />{t.showUncertainties}</label>
         {result?.curve && <label class="ib-check" title={t.scoreHint}><input type="checkbox" checked={showScore}
-          onChange={e => setShowScore(e.currentTarget.checked)} />{t.showScore}</label>}
+          onChange={e => edit({ showScore: e.currentTarget.checked })} />{t.showScore}</label>}
         {lines.length > 0 && <label class="ib-language">{t.significantFigures}
           <select aria-label={t.significantFigures} value={significantFigures}
-            onChange={e => setSignificantFigures(Number(e.currentTarget.value))}>
+            onChange={e => edit({ significantFigures: Number(e.currentTarget.value) })}>
             {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>{n}</option>)}
           </select>
         </label>}
@@ -174,8 +211,18 @@ export default function GraphTool({ lang }: { lang: Lang }) {
           </select>
         </div>)}
       </details>}
-      <AdvancedSettings t={t} value={appearance} onChange={setAppearance} keys={legendKeys} />
+      <AdvancedSettings t={t} value={appearance} onChange={appearance => edit({ appearance })} keys={legendKeys} />
     </section>
+    <div class="ib-project-files">
+      <button type="button" onClick={saveProject}>{t.saveProject}</button>
+      <button type="button" onClick={() => fileInput.current?.click()}>{t.openProject}</button>
+      <input hidden type="file" ref={fileInput} accept=".json,application/json" onChange={e => {
+        const file = e.currentTarget.files?.[0];
+        e.currentTarget.value = "";
+        void openProject(file);
+      }} />
+      <span role="status">{fileStatus && t[fileStatus] + " "}{t[cacheStatus]}</span>
+    </div>
     <div class="ib-editors">
       <section class="ib-panel">
         <h2>{t.data}</h2>
@@ -191,18 +238,18 @@ export default function GraphTool({ lang }: { lang: Lang }) {
               {errors[i][j] && <small id={`ib-error-${i}-${j}`}>{errors[i][j]}</small>}
             </td>)}
             <td><button class="ib-delete" aria-label={t.remove + " " + (i+1)} onClick={() =>
-              setRows(rows.length === 1 ? [emptyRow()] : rows.filter((_, n) => n !== i))}>×</button></td>
+              edit({ rows: rows.length === 1 ? [emptyRow()] : rows.filter((_, n) => n !== i) })}>×</button></td>
           </tr>)}</tbody>
         </table>
         <div class="ib-actions">
-          <button onClick={() => setRows([...rows, emptyRow()])}>＋ {t.add}</button>
-          {isExample && <button class="ib-text-button" onClick={startBlank}>{t.blank}</button>}
+          <button onClick={() => edit({ rows: [...rows, emptyRow()] })}>＋ {t.add}</button>
+          <button class="ib-text-button" onClick={startBlank}>{t.blank}</button>
         </div>
         <div class="ib-section">
           <h3>{t.defaults}</h3><p class="ib-help">{t.inherit}</p>
           <div class="ib-pair">{shared.map((value, i) => <label class="ib-field" key={i}>{columns[i+2]}
             <input value={value} placeholder="0" aria-invalid={!(Number.isFinite(sharedValues[i]) && sharedValues[i] >= 0)}
-              onInput={e => setShared(shared.map((old, j) => i === j ? e.currentTarget.value : old))} />
+              onInput={e => edit({ shared: shared.map((old, j) => i === j ? e.currentTarget.value : old) })} />
             {(!Number.isFinite(sharedValues[i]) || sharedValues[i] < 0) && <small>{t.unsigned}</small>}
           </label>)}</div>
         </div>
@@ -214,13 +261,13 @@ export default function GraphTool({ lang }: { lang: Lang }) {
           <div class="ib-axis">{field("yName")}{field("yUnit")}</div>
         </div>
         <div class="ib-section"><h3>{t.options}</h3>
-          <label class="ib-field">{t.model}<select aria-label={t.model} value={model} onChange={e => setModel(e.currentTarget.value as typeof model)}>
+          <label class="ib-field">{t.model}<select aria-label={t.model} value={model} onChange={e => edit({ model: e.currentTarget.value as typeof model })}>
             <option value="none">{t.none}</option>
             {models.map(key => <option value={key} key={key}>{t[key]}</option>)}
           </select></label>
           {(model === "exponential" || model === "power") && <p class="ib-help">{t.logFit}</p>}
-          <label class="ib-check"><input type="checkbox" checked={bars} onChange={e => setBars(e.currentTarget.checked)} />{t.bars}</label>
-          {model === "linear" && <label class="ib-check"><input type="checkbox" checked={bounds} onChange={e => setBounds(e.currentTarget.checked)} />{t.bounds}</label>}
+          <label class="ib-check"><input type="checkbox" checked={bars} onChange={e => edit({ bars: e.currentTarget.checked })} />{t.bars}</label>
+          {model === "linear" && <label class="ib-check"><input type="checkbox" checked={bounds} onChange={e => edit({ bounds: e.currentTarget.checked })} />{t.bounds}</label>}
         </div>
       </section>
     </div>

@@ -68,3 +68,6 @@
 @media (max-width: 540px) {
   .ib-toolbar .ib-primary { grid-column: 1 / -1; justify-self: end; }
 }
+
+.ib-project-files { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: .85rem; }
+.ib-project-files span { color: #566159; font-size: .875rem; }

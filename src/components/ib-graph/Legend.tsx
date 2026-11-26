@@ -1,28 +1,13 @@
 import type { Labels } from "./copy";
 
-export const positions = ["right", "below", "topLeft", "topRight", "bottomRight"] as const;
-export type Position = typeof positions[number];
-export type LegendKey = "best" | "min" | "max" | "uncertainty" | "rSquared";
-export type Preset = "matplotlib" | "origin";
-export type Appearance = {
-  preset: Preset;
-  titlePosition: "canvas" | "plot" | Position;
-  positions: Record<LegendKey, Position>;
-  font: "auto" | "serif" | "sans";
-  size: number;
-  weight: "auto" | "400" | "600" | "700";
-};
-export const defaultAppearance: Appearance = {
-  preset: "matplotlib", titlePosition: "canvas",
-  positions: { best: "right", min: "right", max: "right", uncertainty: "right", rSquared: "right" },
-  font: "auto", size: 18, weight: "auto",
-};
+import { legendSizes, titleSizes, positions, type Appearance, type LegendKey, type Position, type Typography } from "./project";
 export const fonts = {
   sans: "Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif",
   serif: "'Times New Roman', 'Songti SC', SimSun, serif",
 };
 export type Entry = {
   key: LegendKey | "title"; position: Position; label: string; values: string[];
+  textStyle?: { size: number; font: string; weight: string };
   stroke?: { color: string; dash?: string };
 };
 export function textWidth(text: string, size: number) {
@@ -38,7 +23,7 @@ export function layoutLegend(entries: Entry[], size: number, margin: number, top
   const groups = (position: Position) => entries.filter(e => e.position === position);
   const gap = 12, pad = 12;
   const rowHeight = size * 1.38;
-  const entryHeight = (e: Entry) => (1 + e.values.length) * rowHeight;
+  const entryHeight = (e: Entry) => (e.textStyle?.size ?? size) * 1.38 + e.values.length * rowHeight;
   const stackHeight = (items: Entry[]) => items.length
     ? 2 * pad + items.reduce((h, e) => h + entryHeight(e), 0) + gap * (items.length - 1) : 0;
   const side = groups("right"), below = groups("below");
@@ -53,7 +38,7 @@ export function layoutLegend(entries: Entry[], size: number, margin: number, top
     const items = groups(position);
     if (!items.length) continue;
     const height = stackHeight(items);
-    const desiredWidth = Math.max(...items.flatMap(e => [e.label, ...e.values].map(s => textWidth(s, size) + (e.stroke ? 44 : 0)))) + pad * 2;
+    const desiredWidth = Math.max(...items.flatMap(e => [e.label, ...e.values].map(s => textWidth(s, e.textStyle?.size ?? size) + (e.stroke ? 44 : 0)))) + pad * 2;
     // Render the whole inset at one scale, including the frame, type and line sample.
     // Cap its unscaled width at the sidebar width so a long equation stays smaller inside.
     const scale = position === "right" ? 1 : insideScale;
@@ -87,12 +72,13 @@ export function Legend({ layout, appearance, font, lineWidth, ink }: {
       return <g key={block.position + block.items[0].key} data-position={block.position} transform={`translate(${block.x} ${block.y}) scale(${block.scale})`}>
         {inside && <rect width={block.width} height={block.height} fill="white" stroke={appearance.preset === "origin" ? ink : "#aab8bf"} stroke-width="1" />}
         {block.items.map(entry => {
-          const y = nextY + size;
+          const labelSize = entry.textStyle?.size ?? size;
+          const y = nextY + labelSize;
           nextY += entryHeight(entry) + gap;
           const x = pad + (entry.stroke ? 44 : 0), available = block.width - x - pad;
           return <g key={entry.key} data-legend={entry.key}>
             {entry.stroke && <path d={`M${pad} ${y-size*.32}h34`} stroke={entry.stroke.color} stroke-width={lineWidth} stroke-dasharray={entry.stroke.dash} />}
-            <text x={x} y={y} font-size={fitSize(entry.label, size, available)} font-weight={weight === "auto" ? "600" : weight}>{entry.label}</text>
+            <text x={x} y={y} font-family={entry.textStyle?.font} font-size={fitSize(entry.label, labelSize, available)} font-weight={entry.textStyle?.weight ?? (weight === "auto" ? "600" : weight)}>{entry.label}</text>
             {entry.values.map((v, i) => <text key={i} x={x} y={y + (i+1)*rowHeight}
               fill={entry.stroke?.color ?? ink} font-size={fitSize(v, size, available)} font-weight={weight === "auto" ? "400" : weight}>{v}</text>)}
           </g>;
@@ -117,13 +103,27 @@ export function AdvancedSettings({ t, value, onChange, keys }: {
         {positions.map(p => <option key={p} value={p}>{t.positions[p]}</option>)}
       </select></label>)}
     </fieldset>
-    <fieldset class="ib-advanced"><legend>{t.legendType}</legend>
-      <label class="ib-field">{t.fontSize}<select value={value.size} onChange={e => onChange({ ...value, size: Number(e.currentTarget.value) })}>
-        {[12,14,16,18,20,22,24].map(n => <option key={n} value={n}>{n}</option>)}</select></label>
-      <label class="ib-field">{t.fontFamily}<select value={value.font} onChange={e => onChange({ ...value, font: e.currentTarget.value as Appearance["font"] })}>
-        <option value="auto">{t.followPreset}</option><option value="serif">{t.serif}</option><option value="sans">{t.sans}</option></select></label>
-      <label class="ib-field">{t.fontWeight}<select value={value.weight} onChange={e => onChange({ ...value, weight: e.currentTarget.value as Appearance["weight"] })}>
-        <option value="auto">{t.followPreset}</option><option value="400">{t.regular}</option><option value="600">{t.semibold}</option><option value="700">{t.bold}</option></select></label>
-    </fieldset>
+    <TypeControls t={t} label={t.legendType} style={value} sizes={legendSizes}
+      onChange={style => onChange({ ...value, ...style, size: style.size as Appearance["size"] })} />
+    {(["title", "xName", "yName"] as const).map(key =>
+      <TypeControls key={key} t={t} label={t.typeLabels[key]} style={value.typography[key]} autoSize
+        sizes={titleSizes} onChange={style => onChange({
+          ...value, typography: { ...value.typography, [key]: style },
+        })} />)}
   </details>;
+}
+
+function TypeControls({ t, label, style, sizes, autoSize, onChange }: {
+  t: Labels; label: string; style: Typography; sizes: readonly number[]; autoSize?: boolean;
+  onChange: (style: Typography) => void;
+}) {
+  return <fieldset class="ib-advanced"><legend>{label}</legend>
+      <label class="ib-field">{t.fontSize}<select value={style.size} onChange={e => onChange({ ...style, size: e.currentTarget.value === "auto" ? "auto" : Number(e.currentTarget.value) as Typography["size"] })}>
+        {autoSize && <option value="auto">{t.followPreset}</option>}
+        {sizes.map(n => <option key={n} value={n}>{n}</option>)}</select></label>
+      <label class="ib-field">{t.fontFamily}<select value={style.font} onChange={e => onChange({ ...style, font: e.currentTarget.value as Appearance["font"] })}>
+        <option value="auto">{t.followPreset}</option><option value="serif">{t.serif}</option><option value="sans">{t.sans}</option></select></label>
+      <label class="ib-field">{t.fontWeight}<select value={style.weight} onChange={e => onChange({ ...style, weight: e.currentTarget.value as Appearance["weight"] })}>
+        <option value="auto">{t.followPreset}</option><option value="400">{t.regular}</option><option value="600">{t.semibold}</option><option value="700">{t.bold}</option></select></label>
+    </fieldset>;
 }

@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../../../layouts/Baselayout.astro";
+import GiscusComments from "../../../components/GiscusComments.astro";
 import GraphTool from "../../../components/ib-graph/GraphTool";
 import { copy } from "../../../components/ib-graph/copy";
 import { en } from "../../../i18n/en";
@@ -10,7 +11,9 @@ export function getStaticPaths() {
 }
 const { lang } = Astro.params;
 const text = copy[lang];
+const t = lang === "en" ? en : zh;
 ---
-<BaseLayout pageTitle={text.name} seoDescription={text.description} lang={lang} t={lang === "en" ? en : zh} wide>
+<BaseLayout pageTitle={text.name} seoDescription={text.description} lang={lang} t={t} wide>
   <GraphTool lang={lang} client:load />
+  <GiscusComments term="toolbox/ib-graph" lang={lang} t={t} />
 </BaseLayout>

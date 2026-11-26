@@ -1,5 +1,6 @@
 import type { Ref } from "preact";
-import { Legend, fitSize, fonts, layoutLegend, type Appearance, type Entry } from "./Legend";
+import { Legend, fitSize, fonts, layoutLegend, type Entry } from "./Legend";
+import type { Appearance, Typography } from "./project";
 import { makeAxis } from "./axis";
 import type { Labels } from "./copy";
 import { equation, numberText, type Curve, type Point } from "./graph";
@@ -60,9 +61,17 @@ export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit
   const lineWidth = origin ? 1.9 : 3.3;
   const family = origin ? "serif" : "sans";
   const topTitle = appearance.titlePosition === "canvas" || appearance.titlePosition === "plot";
+  const resolveType = (style: Typography, size: number, weight: string) => ({
+    size: style.size === "auto" ? size : style.size,
+    weight: style.weight === "auto" ? weight : style.weight,
+    font: fonts[style.font === "auto" ? family : style.font],
+  });
+  const titleStyle = resolveType(appearance.typography.title, topTitle ? (origin ? 31 : 33) : appearance.size, origin || !topTitle ? "600" : "700");
+  const xStyle = resolveType(appearance.typography.xName, 21, "400");
+  const yStyle = resolveType(appearance.typography.yName, 21, "400");
   const entries: Entry[] = [];
   if (title && appearance.titlePosition !== "plot" && appearance.titlePosition !== "canvas") {
-    entries.push({ key: "title", position: appearance.titlePosition, label: title, values: [] });
+    entries.push({ key: "title", position: appearance.titlePosition, label: title, values: [], textStyle: titleStyle });
   }
   for (const { kind, curve } of lines) {
     const style = styles[kind];
@@ -81,7 +90,7 @@ export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit
   const fullX = xLabel + (xUnit ? " (" + xUnit + ")" : "");
   const fullY = yLabel + (yUnit ? " (" + yUnit + ")" : "");
   const tickWidth = Math.max(0, ...(ya?.ticks.map(tick => tick.label.length) ?? [])) * 11;
-  const margin = Math.max(78, (fullY ? 68 : 30) + tickWidth);
+  const margin = Math.max(78, (fullY ? 68 + Math.max(0, yStyle.size - 21) : 30) + tickWidth);
   const box = layoutLegend(entries, appearance.size, margin, title && topTitle ? 120 : 68);
   const width = box.right - box.left, height = box.bottom - box.top;
   const px = (x: number) => box.left + xa!.position(x) * width;
@@ -93,7 +102,7 @@ export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit
     <title>{title || t.preview}</title>
     <rect width="1200" height={box.canvasHeight} fill="white" />
     {topTitle && <text x={titleX} y={abovePlot ? box.top - (ya?.note ? 49 : 28) : 65} text-anchor="middle"
-      font-weight={origin ? "600" : "700"} font-size={fitSize(title, origin ? 31 : 33, abovePlot ? width : 1110)}>{title}</text>}
+      font-family={titleStyle.font} font-weight={titleStyle.weight} font-size={fitSize(title, titleStyle.size, abovePlot ? width : 1110)}>{title}</text>}
     {plotted ? <>
       {showGrid && <g data-grid="" stroke={origin ? "#dedede" : "#e1e7ea"} stroke-width={origin ? 0.8 : 1}>
         {xa.ticks.map(({position}) => <path key={"x" + position} d={`M${box.left + position * width} ${box.top}v${height}`} />)}
@@ -127,8 +136,8 @@ export function Figure({ svgRef, t, title, xLabel, yLabel, ySymbol, xUnit, yUnit
       {xa.note && <text x={box.right} y={box.bottom + 50} text-anchor="end" font-size="16">{xa.note}</text>}
       {origin ? <rect x={box.left} y={box.top} width={width} height={height} fill="none" stroke={ink} stroke-width="1.5" />
         : <path d={`M${box.left} ${box.top}V${box.bottom}H${box.right}`} fill="none" stroke="#81949e" />}
-      <text x={box.left + width / 2} y={box.bottom + (xa.note ? 79 : 61)} text-anchor="middle" font-size={fitSize(fullX, 21, width)}>{fullX}</text>
-      <text transform={`translate(${box.left - tickWidth - 31} ${box.top + height / 2}) rotate(-90)`} text-anchor="middle" font-size={fitSize(fullY, 21, height)}>{fullY}</text>
+      <text x={box.left + width / 2} y={box.bottom + (xa.note ? 79 : 61) + Math.max(0, xStyle.size - 21) * .7} text-anchor="middle" font-family={xStyle.font} font-weight={xStyle.weight} font-size={fitSize(fullX, xStyle.size, width)}>{fullX}</text>
+      <text transform={`translate(${box.left - tickWidth - 31 - Math.max(0, yStyle.size - 21) * .4} ${box.top + height / 2}) rotate(-90)`} text-anchor="middle" font-family={yStyle.font} font-weight={yStyle.weight} font-size={fitSize(fullY, yStyle.size, height)}>{fullY}</text>
       <defs><clipPath id="ib-plot"><rect x={box.left - 4} y={box.top - 4} width={box.right - box.left + 8} height={box.bottom - box.top + 8} /></clipPath></defs>
       <g clip-path="url(#ib-plot)">
         {sampled.map(({ samples, kind }) => {
